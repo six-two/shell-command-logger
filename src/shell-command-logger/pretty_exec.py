@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import base64
 import getpass
 import json
@@ -8,11 +9,17 @@ import subprocess
 import sys
 import time
 # pip dependency
-from termcolor import cprint
+try:
+    from termcolor import cprint
+except ImportError:
+    # Fallback if the package was not installed
+    def cprint(message, *args, **kwargs) -> None:
+        print(message)
 
 # Since this scriptwill be called using something like `script [...] -c "./pretty_exec ARGUMENTS"` escaping arguments safely and correctly may be hard
 # and mistakes could result is subtle bugs. So instead the arguments will be passed in a shell-safe format.
 # My idea is to JSON encode the argv array and then base64 encode the resulting string
+# @LINK: Opposite of simple_recorder.py:encode_command()
 def decode_command(encoded_command_array: str) -> list[str]:
     command_json_bytes = base64.b64decode(encoded_command_array)
     command_json = command_json_bytes.decode("utf-8")
@@ -87,6 +94,10 @@ def print_process_stopped(reason: str) -> None:
 
 
 if __name__ == "__main__":
-    command = sys.argv[1:]
+    ap = argparse.ArgumentParser()
+    ap.add_argument("encoded_command", help="A base64 encoded JSON list containing the command to execute")
+    args = ap.parse_args()
+
+    command = decode_command(args.encoded_command)
     exit_code = pretty_run_command(command)
     sys.exit(exit_code)
