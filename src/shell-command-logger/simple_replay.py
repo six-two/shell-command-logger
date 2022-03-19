@@ -7,7 +7,8 @@ import sys
 def replay_command(output_file: str) -> int:
     timing_file = f"{output_file}.time"
 
-    script_command = ["scriptreplay",
+    script_command = [
+        "scriptreplay",
         "--log-out", output_file, # read the output file
         "--log-timing", timing_file, # also read the timing file
         # @TODO: --divisor <num>     speed up or slow down execution with time divisor

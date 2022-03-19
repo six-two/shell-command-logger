@@ -4,8 +4,21 @@ import json
 import os
 import subprocess
 import sys
+import time
+import secrets
 
-SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+# This also works when the file is a symlink (gets the original dir)
+REAL_SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+# The name the file was called as (for example `rec` if `/tmp/rec` is a symlink to this script)
+USED_SCRIPT_NAME = os.path.basename(__file__)
+# The original scripts file name (for example simple_recorder.py if `/tmp/rec` is a symlink to this script)
+REAL_SCRIPT_NAME = os.path.basename(os.path.realpath(__file__))
+
+
+# @TODO load settings from a file.
+# Optional: first try ~/.config/shell-command-logger/config.yaml, then /etc/shell-command-logger/config.yaml
+OUTPUT_PATH = "/tmp/simple_recorder"
+RANDOM_BYTES_IN_FILE_NAME = 2
 
 
 # @LINK: Opposite of pretty_exec.py:decode_command()
@@ -18,10 +31,11 @@ def encode_command(command_and_arguments: str) -> str:
 
 def record_command(command_and_arguments: list[str], output_file: str) -> int:
     encoded_command = encode_command(command_and_arguments)
-    pretty_exec = os.path.join(SCRIPT_DIR, "pretty_exec.py")
+    pretty_exec = os.path.join(REAL_SCRIPT_DIR, "pretty_exec.py")
     timing_file = f"{output_file}.time"
 
-    script_command = ["script",
+    script_command = [
+        "script",
         "--log-out", output_file, # stores the output
         "--log-timing", timing_file, # also stores the timing, so that the output can be played back to watch when what happened
         "--command", f"{pretty_exec} {encoded_command}", # runs our command, which displays the command, timestamp, exit code, etc
@@ -38,12 +52,39 @@ def record_command(command_and_arguments: list[str], output_file: str) -> int:
         return 2
 
 
+def get_timestamp_filename() -> str:
+    now = time.gmtime()
+    date = time.strftime("%Gw%V")
+    day = "abcdefg"[now.tm_wday] # Monday -> a, ..., Sunday -> g
+    time_str = time.strftime("%H%M%S")
+    random = secrets.token_hex(RANDOM_BYTES_IN_FILE_NAME) # a random value to (with a high likelyhood) prevent mutiple logs started in the same second from overwriting each other.
+    # Not perfect, but prevents having to implement a locking / consensus system
+
+    timestamp = f"{date}{day}_{time_str}_{random}"
+    print(timestamp)
+    return timestamp
+
 if __name__ == "__main__":
     command = sys.argv[1:]
+    # When the script is an alias (symlink), use the symlink name as the command to execute
+    # To test this you can for example:
+    # 1) ln -s ./simple_recorder.py /tmp/ls
+    # 2) Call it via the symlink: /tmp/ls -1 /
+    if USED_SCRIPT_NAME != REAL_SCRIPT_NAME:
+        command = [USED_SCRIPT_NAME, *command]
+
+    # print("Debug", command)
     if not command:
         print("Usage: <command> [arguments...]")
         print("Example: ls -1 '/home/johndoe/My Documents/'")
         sys.exit(1)
-    exit_code = record_command(command, "/tmp/simple_recorder")
+
+    command_name = os.path.basename(command[0])
+    output_dir = os.path.join(OUTPUT_PATH, command_name)
+    os.makedirs(output_dir, exist_ok=True)
+
+    output_file = os.path.join(output_dir, get_timestamp_filename())
+
+    exit_code = record_command(command, output_file)
     sys.exit(exit_code)
 
