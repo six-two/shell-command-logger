@@ -34,12 +34,12 @@ You can also create a symlink to log all invocations of a programm automatically
     ```
 3. Create a symlink named the same as your favourite command. The symlink should be in the folder from step 1 and point to the scl binary (path from step 2). For example:
     ```bash
-    ln -s /home/user/.local/bin/scl ~/.bin/nmap
+    ln -s /home/<user>/.local/bin/scl ~/.bin/nmap
     ```
 4. Logout and log back in and check if the $PATH is set correctly:
     ```bash
     $ echo $PATH
-    /home/user/.bin:/usr/local/sbin:...
+    /home/<user>/.bin:/usr/local/sbin:...
     ```
 5. Try to execute your command. You should now see the "Shell Command Logger" outputs:
     ```bash
