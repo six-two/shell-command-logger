@@ -9,15 +9,11 @@ import secrets
 
 # This also works when the file is a symlink (gets the original dir)
 REAL_SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-# The name the file was called as (for example `rec` if `/tmp/rec` is a symlink to this script)
-USED_SCRIPT_NAME = os.path.basename(__file__)
-# The original scripts file name (for example simple_recorder.py if `/tmp/rec` is a symlink to this script)
-REAL_SCRIPT_NAME = os.path.basename(os.path.realpath(__file__))
 
 
 # @TODO load settings from a file.
 # Optional: first try ~/.config/shell-command-logger/config.yaml, then /etc/shell-command-logger/config.yaml
-OUTPUT_PATH = "/tmp/simple_recorder"
+OUTPUT_PATH = os.path.expanduser("~/.shell-command-logs/")
 RANDOM_BYTES_IN_FILE_NAME = 2
 
 
@@ -32,13 +28,12 @@ def encode_command(command_and_arguments: str) -> str:
 def record_command(command_and_arguments: list[str], output_file: str) -> int:
     encoded_command = encode_command(command_and_arguments)
     pretty_exec = os.path.join(REAL_SCRIPT_DIR, "pretty_exec.py")
-    timing_file = f"{output_file}.time"
 
     script_command = [
         "script",
-        "--log-out", output_file, # stores the output
-        "--log-timing", timing_file, # also stores the timing, so that the output can be played back to watch when what happened
-        "--command", f"{pretty_exec} {encoded_command}", # runs our command, which displays the command, timestamp, exit code, etc
+        "--log-out", f"{output_file}.log", # stores the output
+        "--log-timing", f"{output_file}.time", # also stores the timing, so that the output can be played back to watch when what happened
+        "--command", f"python3 {pretty_exec} {encoded_command}", # runs our command, which displays the command, timestamp, exit code, etc
         "--return", # return exit code of the child process
         "--output-limit", "1g", # If the output is larger than one Gigabyte, something probably went wrong.
         # This prevents your harddrive from overflowing. @TODO: add a flag/option to disable this
@@ -61,23 +56,27 @@ def get_timestamp_filename() -> str:
     # Not perfect, but prevents having to implement a locking / consensus system
 
     timestamp = f"{date}{day}_{time_str}_{random}"
-    print(timestamp)
     return timestamp
 
-if __name__ == "__main__":
-    command = sys.argv[1:]
+
+def main_recorder(command: list[str], calling_scripts__file__value: str) -> int:
+    # The name the file was called as (for example `rec` if `/tmp/rec` is a symlink to this script)
+    used_binary_name = os.path.basename(calling_scripts__file__value)
+    # The original scripts file name (for example simple_recorder.py if `/tmp/rec` is a symlink to this script)
+    real_binary_name = os.path.basename(os.path.realpath(calling_scripts__file__value))
+
     # When the script is an alias (symlink), use the symlink name as the command to execute
     # To test this you can for example:
     # 1) ln -s ./simple_recorder.py /tmp/ls
     # 2) Call it via the symlink: /tmp/ls -1 /
-    if USED_SCRIPT_NAME != REAL_SCRIPT_NAME:
-        command = [USED_SCRIPT_NAME, *command]
+    if used_binary_name != real_binary_name:
+        command = [used_binary_name, *command]
 
     # print("Debug", command)
     if not command:
         print("Usage: <command> [arguments...]")
         print("Example: ls -1 '/home/johndoe/My Documents/'")
-        sys.exit(1)
+        return 1
 
     command_name = os.path.basename(command[0])
     output_dir = os.path.join(OUTPUT_PATH, command_name)
@@ -86,5 +85,11 @@ if __name__ == "__main__":
     output_file = os.path.join(output_dir, get_timestamp_filename())
 
     exit_code = record_command(command, output_file)
+    return exit_code
+
+
+if __name__ == "__main__":
+    command = sys.argv[1:]
+    exit_code = main_recorder(command, __file__)
     sys.exit(exit_code)
 
