@@ -4,7 +4,7 @@ setup(
     name='shell-command-loggger',
     version='0.1.0',    
     description='Logs the output of commands, so that it can be replayed later',
-    url='https://gitlab.com/six-two/shell-command-loggger',
+    url='https://github.com/six-two/shell-command-logger',
     author='six-two',
     author_email='git@six-two.dev',
     license='MIT License',

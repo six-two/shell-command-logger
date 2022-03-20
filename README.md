@@ -1,8 +1,89 @@
-# Shell command logger
+# Shell command logger (scl)
+
+This program uses the linux `script` and `scriptreplay` commands to record and replay the output of any desired commands.
+
+## Installation
+
+Installation via `pip`:
+
+```bash
+pip install git+https://github.com/six-two/shell-command-logger
+```
+
+## Usage
+
+### Record
+
+To record a command, you just prefix it with `scl`:
+
+```bash
+scl ls -1 /
+```
+
+You can also create a symlink to log all invocations of a programm automatically:
+
+1. Find/add a writeable directory to the beginning of your $PATH. For example:
+    ```bash
+    mkdir ~/.bin
+    echo 'export PATH="$HOME/.bin:$PATH"' >> ~/.bash_profile
+    ```
+2. Find out, where the `scl` binary is installed:
+    ```bash
+    $ which scl
+    /home/<user>/.local/bin/scl
+    ```
+3. Create a symlink named the same as your favourite command. The symlink should be in the folder from step 1 and point to the scl binary (path from step 2). For example:
+    ```bash
+    ln -s /home/user/.local/bin/scl ~/.bin/nmap
+    ```
+4. Logout and log back in and check if the $PATH is set correctly:
+    ```bash
+    $ echo $PATH
+    /home/user/.bin:/usr/local/sbin:...
+    ```
+5. Try to execute your command. You should now see the "Shell Command Logger" outputs:
+    ```bash
+    $ nmap localhost
+    ############################# Shell Command Logger #############################
+    # Timestamp : 2022-03-20 13:30:53 GMT
+    # User      : <user>@<hostname>
+    # Command   : /usr/bin/nmap localhost
+    ################################ Process Output ################################
+    ...
+    ```
+
+
+
+### Replay
+
+If you only want to see the final output, just `cat` the `.log` file:
+
+```bash
+cat ~/.shell-command-logs/<command>/<timestamp>.log
+```
+
+Replay a command (watch output in realtime):
+
+```bash
+scl-replay ~/.shell-command-logs/<command>/<timestamp>.log
+```
+
+If you want to replay the command on a different system, that does not have `scl-replay` installed, you can also invoke `scriptreplay` directly:
+
+```bash
+scriptreplay --log-out ~/.shell-command-logs/<command>/<timestamp>.log --log-timing ~/.shell-command-logs/<command>/<timestamp>.time
+```
+
+
+## TODOs
+
+- Load settings from a config file
+- Different replay speeds
+- Create a README in the output location, that xeplains how to understand the logs
 
 ## Date format
 The normal (Gregorian) caledar is not very intuitive.
-Thus I have decided to allow an alternative date format, that uses the week number and the type of day.
+Thus I have decided to use an alternative date format, that uses the week number and the type of day.
 The format is `<YYYY>w<WW><D>` where
 
 - `<YYYY>` is the current year (like `2022`)

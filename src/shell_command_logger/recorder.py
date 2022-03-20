@@ -59,6 +59,27 @@ def get_timestamp_filename() -> str:
     return timestamp
 
 
+def get_command_path(command_name: str, calling_scripts__file__value: str) -> str:
+    """
+    Gets the full path for a programm name, but will ignore symlinks to this script.
+    This prevents recursive calls to this script
+    """
+    if "/" in command_name:
+        # the command is a path to a file, so the $PATH is not used
+        return command_name
+    else:
+        # Resolve a command to a full path, just in case there is a symlink to this script in the $PATH
+        path = os.getenv('PATH')
+        for p in path.split(os.path.pathsep):
+            p = os.path.join(p, command_name)
+            if os.path.exists(p) and os.access(p,os.X_OK):
+                if not os.path.samefile(p, calling_scripts__file__value):
+                    return p
+        # Maybe it is a shell builtin? Just return the original value
+        return command_name
+        # raise Exception(f"No binary found for '{command_name}', that is not a link to this script")
+
+
 def main_recorder(command: list[str], calling_scripts__file__value: str) -> int:
     # The name the file was called as (for example `rec` if `/tmp/rec` is a symlink to this script)
     used_binary_name = os.path.basename(calling_scripts__file__value)
@@ -71,6 +92,9 @@ def main_recorder(command: list[str], calling_scripts__file__value: str) -> int:
     # 2) Call it via the symlink: /tmp/ls -1 /
     if used_binary_name != real_binary_name:
         command = [used_binary_name, *command]
+
+    # make sure, that we do not call our own script recursively
+    command[0] = get_command_path(command[0], calling_scripts__file__value)
 
     # print("Debug", command)
     if not command:
