@@ -4,8 +4,12 @@ This program uses the linux `script` and `scriptreplay` commands to record and r
 
 ## Installation
 
-Installation via `pip`:
+Install via `pip`:
+```bash
+pip install shell-command-loggger
+```
 
+Or install the bleeding edge version from this repository:
 ```bash
 pip install git+https://github.com/six-two/shell-command-logger
 ```
