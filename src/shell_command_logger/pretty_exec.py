@@ -5,10 +5,10 @@ from datetime import datetime, timezone
 import getpass
 import json
 import platform
-import shlex
 import subprocess
 import sys
-import time
+import traceback
+from typing import Optional
 
 
 # Since this scriptwill be called using something like `script [...] -c "./pretty_exec ARGUMENTS"` escaping arguments safely and correctly may be hard
@@ -29,11 +29,42 @@ def decode_command(encoded_command_array: str) -> list[str]:
     raise Exception(f"Expected json to contain a list of strings, but got '{command_json}'")
 
 
+def write_json(path, json_data) -> None:
+    try:
+        with open(path, "w") as f:
+            json.dump(json_data, f)
+    except Exception:
+        print(f"[shell-command-logger::error] Failed to write to file '{path}'")
+        traceback.print_exc()
+
+
 def current_timestamp() -> str:
     # Z means Zulu time (UTC)
     # Use timespec=seconds to hide the millisecond part
     return datetime.now(timezone.utc).isoformat("Z", timespec="seconds")
     # Can be parsed with datetime.fromisoformat
+
+
+def execute_command(command: list[str]) -> tuple[int, Optional[str]]:
+    try:
+        status_code = subprocess.call(command)
+        # Process war executed normally: return the status code without an error message
+        return (status_code, None)
+    except KeyboardInterrupt:
+        print("\n[shell-command-logger] Interrupted by user (Ctrl-C / SIGINT)")
+        error_message = "Interrupted by user (Ctrl-C / SIGINT)"
+    except Exception as e:
+        try:
+            # Exception type and message
+            error_message = f"{type(e).__name__}: {e}"
+        except Exception:
+            # Fall back to only the message
+            error_message = str(e)
+        traceback.print_exc()
+
+    # Executing the command failed due to an internal error.
+    # Return -1 as status code and the error message
+    return (-1, error_message)
 
 
 def main(command: list[str], metadata_file: str) -> int:
@@ -44,20 +75,7 @@ def main(command: list[str], metadata_file: str) -> int:
         "start_time": current_timestamp() 
     }
 
-    status_code = -1
-    error_message = None
-    
-    try:
-        status_code = subprocess.call(command)
-    except KeyboardInterrupt:
-        error_message = "Interrupted by user (Ctrl-C / SIGINT)"
-    except Exception as e:
-        try:
-            # Exception type and message
-            error_message = f"{type(e).__name__}: {e}"
-        except Exception:
-            # Fall back to only the message
-            error_message = str(e)
+    status_code, error_message = execute_command(command)
 
     data.update({
         "end_time": current_timestamp(),
@@ -65,8 +83,7 @@ def main(command: list[str], metadata_file: str) -> int:
         "status_code": status_code,
     })
 
-    with open(metadata_file, "w") as f:
-        json.dump(data, f)
+    write_json(metadata_file, data)
 
     return status_code
 

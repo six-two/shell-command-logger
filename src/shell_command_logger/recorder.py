@@ -3,6 +3,7 @@ import base64
 import json
 import os
 import subprocess
+import shlex
 import sys
 import time
 import secrets
@@ -26,14 +27,15 @@ def encode_command(command_and_arguments: str) -> str:
 
 
 def record_command(command_and_arguments: list[str], output_file: str) -> int:
-    encoded_command = encode_command(command_and_arguments)
     pretty_exec = os.path.join(REAL_SCRIPT_DIR, "pretty_exec.py")
+    encoded_command = encode_command(command_and_arguments)
+    inner_command = ["python3", pretty_exec, encoded_command, f"{output_file}.json"]
 
     script_command = [
         "script",
         "--log-out", f"{output_file}.log", # stores the output
         "--log-timing", f"{output_file}.time", # also stores the timing, so that the output can be played back to watch when what happened
-        "--command", f"python3 {pretty_exec} {encoded_command} {output_file}.json", # runs our command, which displays the command, timestamp, exit code, etc
+        "--command", shlex.join(inner_command), # runs our command, which displays the command, timestamp, exit code, etc
         "--return", # return exit code of the child process
         "--output-limit", "1g", # If the output is larger than one Gigabyte, something probably went wrong.
         # This prevents your harddrive from overflowing. @TODO: add a flag/option to disable this
