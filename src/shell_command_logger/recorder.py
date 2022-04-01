@@ -33,7 +33,7 @@ def record_command(command_and_arguments: list[str], output_file: str) -> int:
         "script",
         "--log-out", f"{output_file}.log", # stores the output
         "--log-timing", f"{output_file}.time", # also stores the timing, so that the output can be played back to watch when what happened
-        "--command", f"python3 {pretty_exec} {encoded_command}", # runs our command, which displays the command, timestamp, exit code, etc
+        "--command", f"python3 {pretty_exec} {encoded_command} {output_file}.json", # runs our command, which displays the command, timestamp, exit code, etc
         "--return", # return exit code of the child process
         "--output-limit", "1g", # If the output is larger than one Gigabyte, something probably went wrong.
         # This prevents your harddrive from overflowing. @TODO: add a flag/option to disable this
@@ -86,6 +86,11 @@ def main_recorder(command: list[str], calling_scripts__file__value: str) -> int:
     # The original scripts file name (for example simple_recorder.py if `/tmp/rec` is a symlink to this script)
     real_binary_name = os.path.basename(os.path.realpath(calling_scripts__file__value))
 
+    if not command:
+        print("Usage: <command> [arguments...]")
+        print("Example: ls -1 '/home/johndoe/My Documents/'")
+        return 1
+
     # When the script is an alias (symlink), use the symlink name as the command to execute
     # To test this you can for example:
     # 1) ln -s ./simple_recorder.py /tmp/ls
@@ -96,11 +101,6 @@ def main_recorder(command: list[str], calling_scripts__file__value: str) -> int:
     # make sure, that we do not call our own script recursively
     command[0] = get_command_path(command[0], calling_scripts__file__value)
 
-    # print("Debug", command)
-    if not command:
-        print("Usage: <command> [arguments...]")
-        print("Example: ls -1 '/home/johndoe/My Documents/'")
-        return 1
 
     command_name = os.path.basename(command[0])
     output_dir = os.path.join(OUTPUT_PATH, command_name)

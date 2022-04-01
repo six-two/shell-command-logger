@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import base64
+from datetime import datetime, timezone
 import getpass
 import json
 import platform
@@ -8,13 +9,7 @@ import shlex
 import subprocess
 import sys
 import time
-# pip dependency
-try:
-    from termcolor import cprint
-except ImportError:
-    # Fallback if the package was not installed
-    def cprint(message, *args, **kwargs) -> None:
-        print(message)
+
 
 # Since this scriptwill be called using something like `script [...] -c "./pretty_exec ARGUMENTS"` escaping arguments safely and correctly may be hard
 # and mistakes could result is subtle bugs. So instead the arguments will be passed in a shell-safe format.
@@ -34,31 +29,28 @@ def decode_command(encoded_command_array: str) -> list[str]:
     raise Exception(f"Expected json to contain a list of strings, but got '{command_json}'")
 
 
-def gmt_timestamp() -> str:
-    gmt_now = time.gmtime()
-    return time.strftime("%Y-%m-%d %H:%M:%S GMT", gmt_now)
+def current_timestamp() -> str:
+    # Z means Zulu time (UTC)
+    # Use timespec=seconds to hide the millisecond part
+    return datetime.now(timezone.utc).isoformat("Z", timespec="seconds")
+    # Can be parsed with datetime.fromisoformat
 
 
-def pretty_run_command(command: list[str]) -> int:
-    color = "blue"
-    attrs = ["bold"]
+def main(command: list[str], metadata_file: str) -> int:
+    data = {
+        "command": command,
+        "user": getpass.getuser(),
+        "hostname": platform.node(),
+        "start_time": current_timestamp() 
+    }
 
-    # get some information for the following lines
-    cmd_str = shlex.join(command)
-    username = getpass.getuser()
-    hostname =  platform.node()
+    status_code = -1
+    error_message = None
     
-    cprint(f" Shell Command Logger ".center(80, "#"), color, attrs=attrs)
-    cprint(f"# Timestamp : {gmt_timestamp()}", color, attrs=attrs)
-    cprint(f"# User      : {username}@{hostname}", color, attrs=attrs)
-    cprint(f"# Command   : {cmd_str}", color, attrs=attrs)
-    cprint(f" Process Output ".center(80, "#"), color, attrs=attrs)
-
     try:
-        exit_code = subprocess.call(command)
+        status_code = subprocess.call(command)
     except KeyboardInterrupt:
-        print_process_stopped("Interrupted by user (Ctrl-C / SIGINT)")
-        return 2
+        error_message = "Interrupted by user (Ctrl-C / SIGINT)"
     except Exception as e:
         try:
             # Exception type and message
@@ -67,37 +59,24 @@ def pretty_run_command(command: list[str]) -> int:
             # Fall back to only the message
             error_message = str(e)
 
-        print_process_stopped(error_message)
-        return 2
+    data.update({
+        "end_time": current_timestamp(),
+        "error_message": error_message,
+        "status_code": status_code,
+    })
 
+    with open(metadata_file, "w") as f:
+        json.dump(data, f)
 
-    print_process_finished(exit_code)
-    return exit_code
-
-
-def print_process_finished(exit_code: int) -> None:
-    color = "green" if exit_code == 0 else "red"
-    attrs = ["bold"]
-
-    cprint(f" Process Finished ".center(80, "#"), color, attrs=attrs)
-    cprint(f"# Timestamp : {gmt_timestamp()}", color, attrs=attrs)
-    cprint(f"# Exit code : {exit_code}", color, attrs=attrs)
-
-def print_process_stopped(reason: str) -> None:
-    color = "red"
-    attrs = ["bold"]
-
-    print() # Make sure we start on an empty line
-    cprint(f" Process Stopped ".center(80, "#"), color, attrs=attrs)
-    cprint(f"# Timestamp : {gmt_timestamp()}", color, attrs=attrs)
-    cprint(f"# Reason    : {reason}", color, attrs=attrs)
+    return status_code
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("encoded_command", help="A base64 encoded JSON list containing the command to execute")
+    ap.add_argument("metadata_file", help="the file to write the metadata to")
     args = ap.parse_args()
 
     command = decode_command(args.encoded_command)
-    exit_code = pretty_run_command(command)
+    exit_code = main(command, args.metadata_file)
     sys.exit(exit_code)
