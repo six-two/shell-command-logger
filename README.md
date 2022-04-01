@@ -6,7 +6,7 @@ This program uses the linux `script` and `scriptreplay` commands to record and r
 
 Install via `pip`:
 ```bash
-pip install shell-command-loggger
+pip install shell-command-logger
 ```
 
 Or install the bleeding edge version from this repository:
