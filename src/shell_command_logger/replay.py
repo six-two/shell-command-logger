@@ -168,7 +168,7 @@ def select_command() -> Optional[str]:
             fzf_index = log_file_labels.index(fzf_choice)
             return log_files[fzf_index]
         else:
-            cprint(f"fzf failed with code {process_result.returncode}")
+            cprint(f"[ERROR] fzf failed with code {process_result.returncode}", "red")
             return
 
 
@@ -185,7 +185,11 @@ def format_command(metadata_file: str) -> str:
     command = metadata.get("command", ["unknown command"])
     command = shlex.join(command)
 
-    return f"[{start_time}] {command}"
+    status_code = metadata.get("status_code", 0)
+    # checkmark if success else cross
+    success = "✔" if status_code == 0 else "✖"
+
+    return f"[{start_time} | {success} ] {command}"
 
 
 if __name__ == "__main__":
