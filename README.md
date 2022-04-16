@@ -88,9 +88,8 @@ scriptreplay --log-out ~/.shell-command-logs/<command>/<timestamp>.log --log-tim
 
 ## TODOs
 
-- Load settings from a config file
 - Different replay speeds
-- Create a README in the output location, that explains how to understand the logs
+- Search commands
 
 ## Date format
 The normal (Gregorian) caledar is not very intuitive.

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import argparse
+import glob
 import json
+import os
 import shlex
 import subprocess
 import sys
@@ -10,8 +12,10 @@ from typing import Optional
 from termcolor import cprint
 # local
 from . import get_version_string
+from .config import load_config, sanitize_config
 
 EXTENSIONS = [".json", ".log", ".time"]
+FZF_PATH = "fzf"
 
 
 def replay_command(output_file: str) -> int:
@@ -79,17 +83,50 @@ def remove_extension(path: str) -> str:
 
 def main_replay(arguments: list[str]) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("path", help="the output file containing the command output")
+    group = ap.add_mutually_exclusive_group(required=True)
+    group.add_argument("-i", "--input", metavar=("path"), help="the input file containing the command output")
+    group.add_argument("-f", "--select-file", action="store_true", help="interactively search the file names")
+
     ap.add_argument("-v", "--version", action="version", version=get_version_string())
     args = ap.parse_args(arguments)
 
+    if args.input:
+        # Allow specifying the basename (like ~/.shell-command-logs/echo/2022w11g_133650_63ff),
+        # or either file (the *.log or the *.time). If a file with the extention is given, the extension is removed
+        path = remove_extension(args.input)
 
-    # Allow specifying the basename (like ~/.shell-command-logs/echo/2022w11g_133650_63ff),
-    # or either file (the *.log or the *.time). If a file with the extention is given, the extension is removed
-    path = remove_extension(args.path)
+        exit_code = replay_command(path)
+    elif args.select_file:
+        scl_config = sanitize_config(load_config())
 
-    exit_code = replay_command(path)
-    return exit_code
+        log_files = glob.glob("**/*.log", root_dir=scl_config.output_dir, recursive=True)
+        if not log_files:
+            cprint("No command log files found!", "red")
+            return 1
+        elif len(log_files) == 1:
+            # automatically replay the only match
+            path = remove_extension(log_files[0])
+            return replay_command(path)
+        else:
+            # use fzf ro let the user select the file
+            log_files_text = "\n".join(sorted(log_files))
+            # Pass choices via stdin, read result from stdout, pass through stderr to show the menu
+            try:
+                process_result = subprocess.run([FZF_PATH], input=log_files_text.encode(), stdout=subprocess.PIPE)
+            except FileNotFoundError:
+                cprint(f"[ERROR] Program '{FZF_PATH}' not found. Please install it (and add it to your $PATH)", "red", attrs=["bold"])
+                return 1
+            
+            if process_result.returncode == 0:
+                fzf_choice = process_result.stdout.decode().strip()
+                path = os.path.join(scl_config.output_dir, fzf_choice)
+                path = remove_extension(path)
+                return replay_command(path)
+            else:
+                cprint(f"fzf failed with code {process_result.returncode}")
+                return 1
+
+    raise Exception("BUG: Unreachable code reached")
 
 
 if __name__ == "__main__":
