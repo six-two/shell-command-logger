@@ -89,7 +89,6 @@ scriptreplay --log-out ~/.shell-command-logs/<command>/<timestamp>.log --log-tim
 ## TODOs
 
 - Different replay speeds
-- Search commands
 
 ## Date format
 The normal (Gregorian) caledar is not very intuitive.
