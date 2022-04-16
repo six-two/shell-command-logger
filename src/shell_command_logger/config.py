@@ -6,6 +6,8 @@ from typing import NamedTuple
 # pip dependencies
 from config_path import ConfigPath
 from termcolor import cprint
+# local
+from . import get_name_and_version
 
 class SclConfig(NamedTuple):
     output_dir: str
@@ -24,10 +26,31 @@ def sanitize_config(config: SclConfig) -> SclConfig:
     os.makedirs(output_dir, exist_ok=True)
 
     if config.add_readme:
-        pass
-        # TODO: write config file
+        create_template_file(output_dir)
 
     return config._replace(output_dir=output_dir)
+
+
+def create_template_file(output_dir: str) -> None:
+    output_path = os.path.join(output_dir, "README.md")
+    if not os.path.exists(output_path):
+        try:
+            template_path = os.path.dirname(__file__)
+            template_path = os.path.join(template_path, "output_dir_readme_template.md")
+
+            with open(template_path, "r") as f:
+                template = f.read()
+            
+            _, version = get_name_and_version()
+            template = template.replace("{{version}}", version)
+
+            with open(output_path, "w") as f:
+                f.write(template)
+            
+            cprint("[INFO] Created README file in output directory", "blue")
+        except Exception:
+            cprint("[ERROR] Failed to create the template file", "red")
+            traceback.print_exc()
 
 
 def load_config() -> SclConfig:
