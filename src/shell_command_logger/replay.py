@@ -8,6 +8,8 @@ import traceback
 from typing import Optional
 # pip dependency
 from termcolor import cprint
+# local
+from . import get_version_string
 
 EXTENSIONS = [".json", ".log", ".time"]
 
@@ -78,7 +80,13 @@ def remove_extension(path: str) -> str:
 def main_replay(arguments: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("path", help="the output file containing the command output")
+    ap.add_argument("-v", "--version", action="version", version=get_version_string())
     args = ap.parse_args(arguments)
+
+    if args.version:
+        print(__package__, "version", version(__package__))
+        return 0
+
 
     # Allow specifying the basename (like ~/.shell-command-logs/echo/2022w11g_133650_63ff),
     # or either file (the *.log or the *.time). If a file with the extention is given, the extension is removed

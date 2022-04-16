@@ -7,6 +7,8 @@ import shlex
 import sys
 import time
 import secrets
+# local
+from . import get_version_string
 
 # This also works when the file is a symlink (gets the original dir)
 REAL_SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -88,10 +90,6 @@ def main_recorder(command: list[str], calling_scripts__file__value: str) -> int:
     # The original scripts file name (for example simple_recorder.py if `/tmp/rec` is a symlink to this script)
     real_binary_name = os.path.basename(os.path.realpath(calling_scripts__file__value))
 
-    if not command:
-        print("Usage: <command> [arguments...]")
-        print("Example: ls -1 '/home/johndoe/My Documents/'")
-        return 1
 
     # When the script is an alias (symlink), use the symlink name as the command to execute
     # To test this you can for example:
@@ -99,6 +97,13 @@ def main_recorder(command: list[str], calling_scripts__file__value: str) -> int:
     # 2) Call it via the symlink: /tmp/ls -1 /
     if used_binary_name != real_binary_name:
         command = [used_binary_name, *command]
+
+    if not command:
+        print("This script logs the output of a command, so that it can later be used by scripts like scl-replay\n")
+        print("Usage: <command> [arguments...]")
+        print("Example arguments: ls -1 '/home/johndoe/My Documents/'")
+        print("Version:", get_version_string())
+        return 1
 
     # make sure, that we do not call our own script recursively
     command[0] = get_command_path(command[0], calling_scripts__file__value)
