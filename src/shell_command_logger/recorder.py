@@ -9,6 +9,7 @@ import time
 import secrets
 # local
 from . import get_version_string
+from .config import load_config, sanitize_config
 
 # This also works when the file is a symlink (gets the original dir)
 REAL_SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -90,6 +91,8 @@ def main_recorder(command: list[str], calling_scripts__file__value: str) -> int:
     # The original scripts file name (for example simple_recorder.py if `/tmp/rec` is a symlink to this script)
     real_binary_name = os.path.basename(os.path.realpath(calling_scripts__file__value))
 
+    scl_config = load_config()
+    scl_config = sanitize_config(scl_config)
 
     # When the script is an alias (symlink), use the symlink name as the command to execute
     # To test this you can for example:
@@ -110,7 +113,7 @@ def main_recorder(command: list[str], calling_scripts__file__value: str) -> int:
 
 
     command_name = os.path.basename(command[0])
-    output_dir = os.path.join(OUTPUT_PATH, command_name)
+    output_dir = os.path.join(scl_config.output_dir, command_name)
     os.makedirs(output_dir, exist_ok=True)
 
     output_file = os.path.join(output_dir, get_timestamp_filename())
