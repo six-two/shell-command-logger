@@ -1,4 +1,7 @@
 # Shell command logger (scl)
+[![PyPI version](https://img.shields.io/pypi/v/shell_command_logger)](https://pypi.org/project/shell_command_logger/)
+![License](https://img.shields.io/pypi/l/shell_command_logger)
+![Python versions](https://img.shields.io/pypi/pyversions/shell_command_logger)
 
 This program uses the linux `script` and `scriptreplay` commands to record and replay the output of any desired commands.
 
@@ -45,15 +48,19 @@ You can also create a symlink to log all invocations of a programm automatically
     $ echo $PATH
     /home/<user>/.bin:/usr/local/sbin:...
     ```
-5. Try to execute your command. You should now see the "Shell Command Logger" outputs:
+5. Try to execute your command:
     ```bash
     $ nmap localhost
-    ############################# Shell Command Logger #############################
-    # Timestamp : 2022-03-20 13:30:53 GMT
-    # User      : <user>@<hostname>
-    # Command   : /usr/bin/nmap localhost
-    ################################ Process Output ################################
     ...
+    ```
+    Afterwards the a file should be stored in your shell-command-logger output folder:
+    ```bash
+    $ tree ~/.shell-command-logs/
+    [...]
+    └── nmap
+        ├── 2022w15f_104412_fc25.json
+        ├── 2022w15f_104412_fc25.log
+        └── 2022w15f_104412_fc25.time
     ```
 
 
@@ -83,7 +90,7 @@ scriptreplay --log-out ~/.shell-command-logs/<command>/<timestamp>.log --log-tim
 
 - Load settings from a config file
 - Different replay speeds
-- Create a README in the output location, that xeplains how to understand the logs
+- Create a README in the output location, that explains how to understand the logs
 
 ## Date format
 The normal (Gregorian) caledar is not very intuitive.
