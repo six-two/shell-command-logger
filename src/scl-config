@@ -13,6 +13,9 @@ def config_to_parser(scl_config: SclConfig) -> str:
         "DataDirectory": scl_config.output_dir,
         "AddReadmeFile": scl_config.add_readme,
     }
+    parser["Replay"] = {
+        "CommandFormat": scl_config.command_format,
+    }
     return parser
 
 

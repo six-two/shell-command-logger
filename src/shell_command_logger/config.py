@@ -7,17 +7,19 @@ from typing import NamedTuple
 from config_path import ConfigPath
 from termcolor import cprint
 # local
-from . import get_name_and_version
+from . import get_name_and_version, print_error, DoNotPrintMeException
 
 class SclConfig(NamedTuple):
     output_dir: str
     add_readme: bool
+    command_format: str
 
 CONFIG_PATH = ConfigPath("shell-command-logger", "six-two.dev", ".conf")
 
 DEFAULT_CONFIG = SclConfig(
     output_dir="~/.shell-command-logs/",
     add_readme=True,
+    command_format="[ {start_time} | {success} ] {command}"
 )
 
 
@@ -62,9 +64,11 @@ def load_config() -> SclConfig:
         else:
             # No config file exists
             return DEFAULT_CONFIG
+    except DoNotPrintMeException:
+        print_error("Failed to read config file! Falling back on default configuration")
+        return DEFAULT_CONFIG
     except Exception:
-        cprint("[ERROR] Failed to read config file! Falling back on default configuration", "red", attrs=["bold"])
-        traceback.print_exc()
+        print_error("Failed to read config file! Falling back on default configuration", print_stacktrace=True)
         return DEFAULT_CONFIG
 
 
@@ -72,11 +76,19 @@ def parse_config_file(path: str) -> SclConfig:
     config = configparser.ConfigParser()
     config.read(path)
 
-    section_output = config["Output"]
-    output_dir = section_output.get("DataDirectory", DEFAULT_CONFIG.output_dir)
-    add_readme = section_output.getboolean("AddReadmeFile", fallback=DEFAULT_CONFIG.add_readme)
+    try:
+        section_output = config["Output"]
+        output_dir = section_output.get("DataDirectory", DEFAULT_CONFIG.output_dir)
+        add_readme = section_output.getboolean("AddReadmeFile", fallback=DEFAULT_CONFIG.add_readme)
+
+        section_replay = config["Replay"]
+        command_format = section_replay.get("CommandFormat", DEFAULT_CONFIG.command_format)
+    except KeyError as e:
+        print_error(f"Configuration file is missing section {e}. You can create a valid config file with `scl-config --defaults`")
+        raise DoNotPrintMeException()
 
     return SclConfig(
         output_dir=output_dir,
         add_readme=add_readme,
+        command_format=command_format,
     )
