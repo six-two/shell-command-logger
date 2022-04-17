@@ -12,13 +12,13 @@ from typing import Optional
 from termcolor import cprint
 # local
 from . import get_version_string, print_error
-from .config import load_config, sanitize_config
+from .config import load_config, sanitize_config, SclConfig
 
 EXTENSIONS = [".json", ".log", ".time"]
 FZF_PATH = "fzf"
 
 
-def replay_command(output_file: str) -> int:
+def replay_command(output_file: str, scl_config: SclConfig) -> int:
     metadata = parse_metadata(f"{output_file}.json")
     
     metadata and print_header(metadata)
@@ -27,7 +27,7 @@ def replay_command(output_file: str) -> int:
         "scriptreplay",
         "--log-out", f"{output_file}.log", # read the output file
         "--log-timing", f"{output_file}.time", # also read the timing file
-        # @TODO: --divisor <num>     speed up or slow down execution with time divisor
+        "--divisor", str(scl_config.replay_speed),# @TODO why does this finish immediately with values > 1?
     ]
 
     try:
@@ -44,9 +44,9 @@ def parse_metadata(path: str) -> Optional[dict]:
         with open(path) as f:
             return json.load(f)
     except FileNotFoundError:
-        cprint(f"[scl] Metadata file does not exist: '{path}'", "red", attrs=["bold"])
+        print_error(f"Metadata file does not exist: '{path}'")
     except Exception as e:
-        cprint(f"[scl] Internal error while parsing the metadata in '{path}'", "red", attrs=["bold"])
+        print_error(f"Internal error while parsing the metadata in '{path}'", print_stacktrace=True)
         traceback.print_exc()
     return None
 
@@ -91,12 +91,14 @@ def main_replay(arguments: list[str]) -> int:
     ap.add_argument("-v", "--version", action="version", version=get_version_string())
     args = ap.parse_args(arguments)
 
+    scl_config = sanitize_config(load_config())
+
     if args.input:
         path = args.input
     elif args.select_file:
-        path = select_file()
+        path = select_file(scl_config)
     elif args.select_command:
-        path = select_command()
+        path = select_command(scl_config)
     else:
         raise Exception("Bug: Unreachable code")
 
@@ -106,14 +108,12 @@ def main_replay(arguments: list[str]) -> int:
         path = remove_extension(path)
 
         # replaay the command
-        return replay_command(path)
+        return replay_command(path, scl_config)
     else:
         return 1
 
 
-def select_file() -> Optional[str]:
-    scl_config = sanitize_config(load_config())
-
+def select_file(scl_config: SclConfig) -> Optional[str]:
     log_files = glob.glob("**/*.log", root_dir=scl_config.output_dir, recursive=True)
     if not log_files:
         cprint("No command log files found!", "red")
@@ -140,9 +140,7 @@ def select_file() -> Optional[str]:
             return
 
 
-def select_command() -> Optional[str]:
-    scl_config = sanitize_config(load_config())
-
+def select_command(scl_config: SclConfig) -> Optional[str]:
     log_files = glob.glob("**/*.json", root_dir=scl_config.output_dir, recursive=True)
     if not log_files:
         cprint("No command log files found!", "red")

@@ -10,16 +10,20 @@ from termcolor import cprint
 from . import get_name_and_version, print_error, DoNotPrintMeException
 
 class SclConfig(NamedTuple):
+    # output section
     output_dir: str
     add_readme: bool
+    # replay section
     command_format: str
+    replay_speed: float
 
 CONFIG_PATH = ConfigPath("shell-command-logger", "six-two.dev", ".conf")
 
 DEFAULT_CONFIG = SclConfig(
     output_dir="~/.shell-command-logs/",
     add_readme=True,
-    command_format="[ {start_time} | {success} ] {command}"
+    command_format="[ {start_time} | {success} ] {command}",
+    replay_speed=1.0,
 )
 
 
@@ -51,8 +55,7 @@ def create_template_file(output_dir: str) -> None:
             
             cprint("[INFO] Created README file in output directory", "blue")
         except Exception:
-            cprint("[ERROR] Failed to create the template file", "red")
-            traceback.print_exc()
+            print_error("[ERROR] Failed to create the template file", print_stacktrace=True)
 
 
 def load_config() -> SclConfig:
@@ -83,6 +86,7 @@ def parse_config_file(path: str) -> SclConfig:
 
         section_replay = config["Replay"]
         command_format = section_replay.get("CommandFormat", DEFAULT_CONFIG.command_format)
+        replay_speed = section_replay.getfloat("ReplaySpeed", DEFAULT_CONFIG.replay_speed)
     except KeyError as e:
         print_error(f"Configuration file is missing section {e}. You can create a valid config file with `scl-config --defaults`")
         raise DoNotPrintMeException()
@@ -91,4 +95,5 @@ def parse_config_file(path: str) -> SclConfig:
         output_dir=output_dir,
         add_readme=add_readme,
         command_format=command_format,
+        replay_speed=replay_speed,
     )

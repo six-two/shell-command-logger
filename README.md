@@ -88,7 +88,10 @@ scriptreplay --log-out ~/.shell-command-logs/<command>/<timestamp>.log --log-tim
 
 ## TODOs
 
-- Different replay speeds
+- Create `scl-search` to search metadata and output
+    - Allow `scl-search` to be piped into `scl-replay` to narrow down the choices.
+    - Also allow storing search results in a file and let `scl-replay` load it.
+- Add an option to `scl-replay` to only show the final result (instead of real time replay)
 
 ## Date format
 The normal (Gregorian) caledar is not very intuitive.
