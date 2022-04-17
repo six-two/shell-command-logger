@@ -17,6 +17,8 @@ Or install the bleeding edge version from this repository:
 pip install git+https://github.com/six-two/shell-command-logger
 ```
 
+You should also install `fzf`, which is used by `scl-replay` to let users select a log to replay.
+
 ## Usage
 
 ### Record
@@ -26,6 +28,57 @@ To record a command, you just prefix it with `scl`:
 ```bash
 scl ls -1 /
 ```
+
+
+### Replay
+
+You can use `scl-replay` to interactively choose and replay a file.
+
+- With `scl-replay -f` you can select a file to replay.
+- With `scl-replay -c`you can select a file based on the metadata (command and arguments, timestamp, etc)
+
+
+If you already know the path to the file you want to watch, you can use the `-i` flag:
+
+```bash
+scl-replay -i ~/.shell-command-logs/nmap/2022w15g_175341_a091.json
+```
+
+#### Manual
+
+If you only want to see the final output, just `cat` the `.log` file:
+
+```bash
+cat ~/.shell-command-logs/<command>/<timestamp>.log
+```
+
+If you want to replay the command on a different system, that does not have `scl-replay` installed, you can also invoke `scriptreplay` directly:
+
+```bash
+scriptreplay --log-out ~/.shell-command-logs/<command>/<timestamp>.log --log-timing ~/.shell-command-logs/<command>/<timestamp>.time
+```
+
+
+### Configuration
+
+You can reset the configuration to the default settings with the following command.
+If the file did not exist before, it will be created:
+
+```
+scl-config --defaults
+```
+
+You can see the current configuration with `scl-config -p` or by viewing the file.
+
+Then you can modify the file by hand or by using the `-s` flag:
+
+```
+scl-config -s Output datadirectory ~/scl
+```
+
+## Advanced usage
+
+### Automatically log certain commands
 
 You can also create a symlink to log all invocations of a programm automatically:
 
@@ -53,37 +106,23 @@ You can also create a symlink to log all invocations of a programm automatically
     $ nmap localhost
     ...
     ```
-    Afterwards the a file should be stored in your shell-command-logger output folder:
+    Afterwards the a file should be stored in your shell-command-logger output folder.
+    Thus `scl-replay` should show you the output or show you the command with a current timestamp:
     ```bash
-    $ tree ~/.shell-command-logs/
+    # if it is the first command recorded
+    $ scl-replay -c
+    [scl] Command executed by <user>@<computer> at 2022-04-17Z15:53:41+00:00
+    [scl] Command: /usr/bin/nmap localhost
     [...]
-    └── nmap
-        ├── 2022w15f_104412_fc25.json
-        ├── 2022w15f_104412_fc25.log
-        └── 2022w15f_104412_fc25.time
+
+    # if multiple logs exist
+    $ scl-replay -c
+       [ 2022-04-17 16:00:44 | ✔ ] /usr/bin/echo something
+    >  [ 2022-04-17 15:53:41 | ✔ ] /usr/bin/nmap localhost
+    [...]
     ```
 
 
-
-### Replay
-
-If you only want to see the final output, just `cat` the `.log` file:
-
-```bash
-cat ~/.shell-command-logs/<command>/<timestamp>.log
-```
-
-Replay a command (watch output in realtime):
-
-```bash
-scl-replay ~/.shell-command-logs/<command>/<timestamp>.log
-```
-
-If you want to replay the command on a different system, that does not have `scl-replay` installed, you can also invoke `scriptreplay` directly:
-
-```bash
-scriptreplay --log-out ~/.shell-command-logs/<command>/<timestamp>.log --log-timing ~/.shell-command-logs/<command>/<timestamp>.time
-```
 
 
 ## TODOs
