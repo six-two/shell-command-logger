@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import argparse
-import glob
 import json
 import os
 import shlex
@@ -11,7 +10,7 @@ from typing import Optional
 # pip dependency
 from termcolor import cprint
 # local
-from . import get_version_string, print_error
+from . import get_version_string, print_error, backports
 from .config import load_config, sanitize_config, SclConfig
 
 EXTENSIONS = [".json", ".log", ".time"]
@@ -114,7 +113,7 @@ def main_replay(arguments: list[str]) -> int:
 
 
 def select_file(scl_config: SclConfig) -> Optional[str]:
-    log_files = glob.glob("**/*.log", root_dir=scl_config.output_dir, recursive=True)
+    log_files = backports.root_dir_glob("**/*.log", root_dir=scl_config.output_dir, recursive=True)
     if not log_files:
         cprint("No command log files found!", "red")
         return
@@ -141,7 +140,7 @@ def select_file(scl_config: SclConfig) -> Optional[str]:
 
 
 def select_command(scl_config: SclConfig) -> Optional[str]:
-    log_files = glob.glob("**/*.json", root_dir=scl_config.output_dir, recursive=True)
+    log_files = backports.root_dir_glob("**/*.json", root_dir=scl_config.output_dir, recursive=True)
     if not log_files:
         cprint("No command log files found!", "red")
         return

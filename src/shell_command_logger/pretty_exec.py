@@ -50,9 +50,12 @@ def execute_command(command: list[str]) -> tuple[int, Optional[str]]:
         status_code = subprocess.call(command)
         # Process war executed normally: return the status code without an error message
         return (status_code, None)
+    except FileNotFoundError as e:
+        error_message = f"Program '{command[0]}' not found"
+        print(f"[shell-command-logger] {error_message}")
     except KeyboardInterrupt:
-        print("\n[shell-command-logger] Interrupted by user (Ctrl-C / SIGINT)")
         error_message = "Interrupted by user (Ctrl-C / SIGINT)"
+        print(f"\n[shell-command-logger] {error_message}")
     except Exception as e:
         try:
             # Exception type and message
