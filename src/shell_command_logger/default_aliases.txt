@@ -1,0 +1,16 @@
+curl
+dig
+dirb
+enum4linux
+host
+gobuster
+nc
+ncat
+netcat
+nmap
+nslookup
+masscan
+msfconsole
+smbclient
+wget
+whois
