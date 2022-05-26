@@ -6,8 +6,10 @@ import os
 import sys
 from typing import Callable
 # import the code from this package
+import shell_command_logger
 from shell_command_logger.alias import print_text_to_source, load_alias_file, save_alias_file, CONFIG_FILE
 import shell_command_logger.cli.alias
+import shell_command_logger.cli.replay
 
 class SubcommandHandlerException(Exception):
     pass
@@ -40,17 +42,14 @@ class SubcommandHandler:
         else:
             raise SubcommandHandlerException(f"No subcommand with name '{subcommand_name}' registered")
 
-    
-
-def add_subparser(ap_subparsers, module):
-    ap_module = ap_subparsers.add_parser(module.SUBCOMMAND_NAME, **module.ARG_PARSER_OPTIONS)
-    module.populate_agrument_parser(ap_module)
-
 
 def main():
     ap = argparse.ArgumentParser(description="The scl manager (sclm) allows you to replay and search commands logged with scl. It can also be used to manage scl's settings.")
     handler = SubcommandHandler(ap, subcommand_required=True)
     handler.register_module(shell_command_logger.cli.alias)
+    handler.register_module(shell_command_logger.cli.replay)
+
+    ap.add_argument("-V", "--version", action="version", version=shell_command_logger.get_version_string())
 
     args = ap.parse_args()
     exit_code = handler.subcommand_main(args)

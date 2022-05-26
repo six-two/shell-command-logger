@@ -1,0 +1,6 @@
+termcolor==1.1.0
+config-path==1.0.2
+
+# For type checking
+mypy
+types-termcolor==1.1.0

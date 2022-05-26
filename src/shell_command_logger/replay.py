@@ -14,13 +14,15 @@ from . import get_version_string, print_error, backports
 from .config import load_config, sanitize_config, SclConfig
 
 EXTENSIONS = [".json", ".log", ".time"]
+# @TODO: read from config
 FZF_PATH = "fzf"
 
 
 def replay_command(output_file: str, scl_config: SclConfig) -> int:
     metadata = parse_metadata(f"{output_file}.json")
     
-    metadata and print_header(metadata)
+    if metadata:
+        print_header(metadata)
 
     script_command = [
         "scriptreplay",
@@ -32,7 +34,8 @@ def replay_command(output_file: str, scl_config: SclConfig) -> int:
     try:
         exit_code = subprocess.call(script_command)
 
-        metadata and print_footer(metadata)
+        if metadata:
+            print_footer(metadata)
         return exit_code
     except KeyboardInterrupt:
         return 2
@@ -80,43 +83,11 @@ def remove_extension(path: str) -> str:
     return path
 
 
-def main_replay(arguments: list[str]) -> int:
-    ap = argparse.ArgumentParser()
-    group = ap.add_mutually_exclusive_group(required=True)
-    group.add_argument("-i", "--input", metavar=("path"), help="the input file containing the command output")
-    group.add_argument("-f", "--select-file", action="store_true", help="interactively search the file names")
-    group.add_argument("-c", "--select-command", action="store_true", help="interactively search the command line arguments")
-
-    ap.add_argument("-v", "--version", action="version", version=get_version_string())
-    args = ap.parse_args(arguments)
-
-    scl_config = sanitize_config(load_config())
-
-    if args.input:
-        path = args.input
-    elif args.select_file:
-        path = select_file(scl_config)
-    elif args.select_command:
-        path = select_command(scl_config)
-    else:
-        raise Exception("Bug: Unreachable code")
-
-    if path:
-        # Allow specifying the basename (like ~/.shell-command-logs/echo/2022w11g_133650_63ff),
-        # or either file (the *.log or the *.time). If a file with the extention is given, the extension is removed
-        path = remove_extension(path)
-
-        # replaay the command
-        return replay_command(path, scl_config)
-    else:
-        return 1
-
-
 def select_file(scl_config: SclConfig) -> Optional[str]:
     log_files = backports.root_dir_glob("**/*.log", root_dir=scl_config.output_dir, recursive=True)
     if not log_files:
         cprint("No command log files found!", "red")
-        return
+        return None
     elif len(log_files) == 1:
         # automatically return the only match
         only_choice = log_files[0]
@@ -129,21 +100,21 @@ def select_file(scl_config: SclConfig) -> Optional[str]:
             process_result = subprocess.run([FZF_PATH], input=log_files_text.encode(), stdout=subprocess.PIPE)
         except FileNotFoundError:
             cprint(f"[ERROR] Program '{FZF_PATH}' not found. Please install it (and add it to your $PATH)", "red", attrs=["bold"])
-            return
+            return None
         
         if process_result.returncode == 0:
             fzf_choice = process_result.stdout.decode().strip()
             return os.path.join(scl_config.output_dir, fzf_choice)
         else:
             cprint(f"fzf failed with code {process_result.returncode}")
-            return
+            return None
 
 
 def select_command(scl_config: SclConfig) -> Optional[str]:
     log_files = backports.root_dir_glob("**/*.json", root_dir=scl_config.output_dir, recursive=True)
     if not log_files:
         cprint("No command log files found!", "red")
-        return
+        return None
     elif len(log_files) == 1:
         # automatically return the only match
         only_choice = log_files[0]
@@ -159,7 +130,7 @@ def select_command(scl_config: SclConfig) -> Optional[str]:
             process_result = subprocess.run([FZF_PATH], input=log_files_text.encode(), stdout=subprocess.PIPE)
         except FileNotFoundError:
             cprint(f"[ERROR] Program '{FZF_PATH}' not found. Please install it (and add it to your $PATH)", "red", attrs=["bold"])
-            return
+            return None
         
         if process_result.returncode == 0:
             fzf_choice = process_result.stdout.decode().strip()
@@ -167,7 +138,7 @@ def select_command(scl_config: SclConfig) -> Optional[str]:
             return log_files[fzf_index]
         else:
             cprint(f"[ERROR] fzf failed with code {process_result.returncode}", "red")
-            return
+            return None
 
 class CommandFormater:
     def __init__(self, metadata_file: str) -> None:
@@ -212,6 +183,7 @@ class CommandFormater:
             )
         except KeyError as e:
             print_error(f"The variable {e} is not a valid placeholder for the command format", raise_error=True)
+            raise Exception("BUG: This code should not be reachable")
 
 
 if __name__ == "__main__":

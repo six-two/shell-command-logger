@@ -71,7 +71,7 @@ def execute_command(command: list[str]) -> tuple[int, Optional[str]]:
 
 
 def main(command: list[str], metadata_file: str) -> int:
-    data = {
+    data: dict = {
         "command": command,
         "user": getpass.getuser(),
         "hostname": platform.node(),

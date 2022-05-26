@@ -22,7 +22,7 @@ RANDOM_BYTES_IN_FILE_NAME = 2
 
 
 # @LINK: Opposite of pretty_exec.py:decode_command()
-def encode_command(command_and_arguments: str) -> str:
+def encode_command(command_and_arguments: list[str]) -> str:
     command_json = json.dumps(command_and_arguments)
     command_json_bytes = command_json.encode("utf-8")
     encoded_command = base64.b64encode(command_json_bytes)
@@ -75,6 +75,8 @@ def get_command_path(command_name: str, calling_scripts__file__value: str) -> st
     else:
         # Resolve a command to a full path, just in case there is a symlink to this script in the $PATH
         path = os.getenv('PATH')
+        if not path:
+            raise Exception("The PATH variable is not set. You are running this on Linux, right?")
         for p in path.split(os.path.pathsep):
             p = os.path.join(p, command_name)
             if os.path.exists(p) and os.access(p,os.X_OK):

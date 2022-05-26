@@ -10,14 +10,14 @@ from shell_command_logger.alias import print_text_to_source, load_alias_file, sa
 SUBCOMMAND_NAMES = ["a", "alias"]
 ARG_PARSER_OPTIONS = {
     "description": "This command can be used to manage aliases, which can be used to automatcally log the output of specified binaries",
-    "help": "Manage aliases",
+    "help": "manage aliases",
 }
 
 def populate_agrument_parser(ap) -> None:
     """
     Populates an argparse.ArgumentParser or an subcommand argument parser
     """
-    mutex = ap.add_mutually_exclusive_group()
+    mutex = ap.add_mutually_exclusive_group(required=True)
     mutex.add_argument("-p", "--print", metavar=("shell"), choices=["bash", "fish", "zsh"], help="print the commands to create the aliases for the given shell. This can be directly piped into `source`")
     mutex.add_argument("-l", "--list", action="store_true", help="list all the programs, that the aliases should be created for")
     mutex.add_argument("-s", "--set", nargs="*", help="overwrites the alias list with the given values. This deletes all old entries")
