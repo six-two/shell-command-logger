@@ -9,6 +9,7 @@ from typing import Callable
 import shell_command_logger
 from shell_command_logger.alias import print_text_to_source, load_alias_file, save_alias_file, CONFIG_FILE
 import shell_command_logger.cli.alias
+import shell_command_logger.cli.config
 import shell_command_logger.cli.replay
 
 class SubcommandHandlerException(Exception):
@@ -47,6 +48,7 @@ def main():
     ap = argparse.ArgumentParser(description="The scl manager (sclm) allows you to replay and search commands logged with scl. It can also be used to manage scl's settings.")
     handler = SubcommandHandler(ap, subcommand_required=True)
     handler.register_module(shell_command_logger.cli.alias)
+    handler.register_module(shell_command_logger.cli.config)
     handler.register_module(shell_command_logger.cli.replay)
 
     ap.add_argument("-V", "--version", action="version", version=shell_command_logger.get_version_string())

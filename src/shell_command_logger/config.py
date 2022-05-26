@@ -1,4 +1,4 @@
-import configparser
+from configparser import ConfigParser
 import io
 import os
 import traceback
@@ -76,7 +76,7 @@ def load_config() -> SclConfig:
 
 
 def parse_config_file(path: str) -> SclConfig:
-    config = configparser.ConfigParser()
+    config = ConfigParser()
     config.read(path)
 
     try:
@@ -97,3 +97,31 @@ def parse_config_file(path: str) -> SclConfig:
         command_format=command_format,
         replay_speed=replay_speed,
     )
+
+
+def config_to_parser(scl_config: SclConfig) -> ConfigParser:
+    parser = ConfigParser()
+    parser["Output"] = {
+        "DataDirectory": scl_config.output_dir,
+        "AddReadmeFile": scl_config.add_readme,
+    }
+    parser["Replay"] = {
+        "CommandFormat": scl_config.command_format,
+        "ReplaySpeed": scl_config.replay_speed,
+    }
+    return parser
+
+
+def parser_to_text(parser: ConfigParser) -> str:
+    fake_file = io.StringIO()
+    parser.write(fake_file)
+    return fake_file.getvalue()
+
+
+def save_parser_as_config(parser: ConfigParser) -> None:
+    path = CONFIG_PATH.saveFilePath(mkdir=True)
+    with open(path, "w") as f:
+        parser.write(f)
+    print(f"Wrote config to '{path}':")
+    print(parser_to_text(parser).rstrip())
+

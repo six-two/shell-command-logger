@@ -184,9 +184,3 @@ class CommandFormater:
         except KeyError as e:
             print_error(f"The variable {e} is not a valid placeholder for the command format", raise_error=True)
             raise Exception("BUG: This code should not be reachable")
-
-
-if __name__ == "__main__":
-    arguments = sys.argv[1:]
-    exit_code = main_replay(arguments)
-    sys.exit(exit_code)
