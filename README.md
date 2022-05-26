@@ -131,6 +131,8 @@ You can also create a symlink to log all invocations of a programm automatically
     - Allow `scl-search` to be piped into `scl-replay` to narrow down the choices.
     - Also allow storing search results in a file and let `scl-replay` load it.
 - Add an option to `scl-replay` to only show the final result (instead of real time replay)
+- Rewrite, so that all pip requirements are optional
+- Merge all scrips into one script with subcommands
 
 ## Date format
 The normal (Gregorian) caledar is not very intuitive.
