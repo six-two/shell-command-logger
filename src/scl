@@ -37,7 +37,10 @@ class SubcommandHandler:
     def subcommand_main(self, args) -> int:
         subcommand_name = getattr(args, self.subcommand_variable_name)
         if not subcommand_name:
-            raise SubcommandHandlerException("No subcommand specified")
+            # If no subcommand is specified, we show the help
+            self.ap.print_help()
+            return 1
+
         fn_main = self.main_function_map.get(subcommand_name)
         if fn_main:
             fn_main(args)
@@ -48,11 +51,15 @@ class SubcommandHandler:
 def main():
     # Register the calling binaries path
     shell_command_logger.cli.log.set_script_file(__file__)
+    if symlink_name := shell_command_logger.cli.log.get_name_when_called_by_symlink():
+        exit_code = shell_command_logger.cli.log.record_command_when_called_by_symlink(symlink_name, sys.argv[1:])
+        sys.exit(exit_code)
 
     # Setting up argument parser
-    ap = argparse.ArgumentParser(description="The scl manager (sclm) allows you to replay and search commands logged with scl. It can also be used to manage scl's settings.")
+    ap = argparse.ArgumentParser(description="The shell-command-logger (scl) allows you to record commands. Afterwards the recorded commands can be replay and searched (not implemented yet).",
+        epilog=f"Installed version: {shell_command_logger.get_version_string()}")
     ap.add_argument("-V", "--version", action="version", version=shell_command_logger.get_version_string())
-    handler = SubcommandHandler(ap, subcommand_required=True)
+    handler = SubcommandHandler(ap)
     handler.register_module(shell_command_logger.cli.alias)
     handler.register_module(shell_command_logger.cli.config)
     handler.register_module(shell_command_logger.cli.log)

@@ -24,7 +24,8 @@ def print_error(message, print_stacktrace: bool = False, raise_error: bool = Fal
 
 
 def get_name_and_version() -> tuple[str, str]:
-    package_name = __package__
+    # Use the pip name instead of the package name
+    package_name = "shell-command-logger"
     package_version = __version__
 
     return (package_name, package_version)

@@ -17,9 +17,8 @@ def populate_agrument_parser(ap) -> None:
     """
     Populates an argparse.ArgumentParser or an subcommand argument parser
     """
-    mutex = ap.add_mutually_exclusive_group(required=True)
+    mutex = ap.add_mutually_exclusive_group()
     mutex.add_argument("-p", "--print", metavar=("shell"), choices=["bash", "fish", "zsh"], help="print the commands to create the aliases for the given shell. This can be directly piped into `source`")
-    mutex.add_argument("-l", "--list", action="store_true", help="list all the programs, that the aliases should be created for")
     mutex.add_argument("-s", "--set", nargs="*", help="overwrites the alias list with the given values. This deletes all old entries")
     mutex.add_argument("-a", "--add", nargs="+", help="add the given programs to the alias list")
     mutex.add_argument("-d", "--delete", nargs="+", help="delete the given programs from the alias list")
@@ -34,9 +33,6 @@ def subcommand_main(args) -> int:
     if args.print:
         shell = args.print
         print_text_to_source(shell)
-    elif args.list:
-        for program in load_alias_file():
-            print(program)
     elif args.set is not None:
         save_alias_file(args.set)
     elif args.add:
@@ -50,8 +46,8 @@ def subcommand_main(args) -> int:
     elif args.reset:
         os.remove(CONFIG_FILE)
     else:
-        print("No action specified. See --help for the available options")
-        return 1
+        for program in load_alias_file():
+            print(program)
 
     # By default return 0 (success)
     return 0
