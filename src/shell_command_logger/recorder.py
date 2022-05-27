@@ -17,7 +17,6 @@ REAL_SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 # @TODO load settings from a file.
 # Optional: first try ~/.config/shell-command-logger/config.yaml, then /etc/shell-command-logger/config.yaml
-OUTPUT_PATH = os.path.expanduser("~/.shell-command-logs/")
 RANDOM_BYTES_IN_FILE_NAME = 2
 
 
@@ -85,47 +84,4 @@ def get_command_path(command_name: str, calling_scripts__file__value: str) -> st
         # Maybe it is a shell builtin? Just return the original value
         return command_name
         # raise Exception(f"No binary found for '{command_name}', that is not a link to this script")
-
-
-def main_recorder(command: list[str], calling_scripts__file__value: str) -> int:
-    # The name the file was called as (for example `rec` if `/tmp/rec` is a symlink to this script)
-    used_binary_name = os.path.basename(calling_scripts__file__value)
-    # The original scripts file name (for example simple_recorder.py if `/tmp/rec` is a symlink to this script)
-    real_binary_name = os.path.basename(os.path.realpath(calling_scripts__file__value))
-
-    scl_config = load_config()
-    scl_config = sanitize_config(scl_config)
-
-    # When the script is an alias (symlink), use the symlink name as the command to execute
-    # To test this you can for example:
-    # 1) ln -s ./simple_recorder.py /tmp/ls
-    # 2) Call it via the symlink: /tmp/ls -1 /
-    if used_binary_name != real_binary_name:
-        command = [used_binary_name, *command]
-
-    if not command:
-        print("This script logs the output of a command, so that it can later be used by scripts like scl-replay\n")
-        print("Usage: <command> [arguments...]")
-        print("Example arguments: ls -1 '/home/johndoe/My Documents/'")
-        print("Version:", get_version_string())
-        return 1
-
-    # make sure, that we do not call our own script recursively
-    command[0] = get_command_path(command[0], calling_scripts__file__value)
-
-
-    command_name = os.path.basename(command[0])
-    output_dir = os.path.join(scl_config.output_dir, command_name)
-    os.makedirs(output_dir, exist_ok=True)
-
-    output_file = os.path.join(output_dir, get_timestamp_filename())
-
-    exit_code = record_command(command, output_file)
-    return exit_code
-
-
-if __name__ == "__main__":
-    command = sys.argv[1:]
-    exit_code = main_recorder(command, __file__)
-    sys.exit(exit_code)
 
