@@ -19,10 +19,9 @@ def populate_agrument_parser(ap) -> None:
     """
     Populates an argparse.ArgumentParser or an subcommand argument parser
     """
-    mutex = ap.add_mutually_exclusive_group(required=True)
+    mutex = ap.add_mutually_exclusive_group()
     mutex.add_argument("-i", "--input", metavar=("path"), help="the input file containing the command output")
     mutex.add_argument("-f", "--select-file", action="store_true", help="interactively search the file names")
-    mutex.add_argument("-c", "--select-command", action="store_true", help="interactively search the command line arguments")
 
 
 def subcommand_main(args) -> int:
@@ -36,10 +35,8 @@ def subcommand_main(args) -> int:
         path = args.input
     elif args.select_file:
         path = select_file(scl_config)
-    elif args.select_command:
-        path = select_command(scl_config)
     else:
-        raise Exception("Bug: Unreachable code")
+        path = select_command(scl_config)
 
     if path:
         # Allow specifying the basename (like ~/.shell-command-logs/echo/2022w11g_133650_63ff),

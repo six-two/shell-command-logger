@@ -9,7 +9,7 @@ This program uses the linux `script` and `scriptreplay` commands to record and r
 
 Install via `pip`:
 ```bash
-pip install shell-command-logger
+pip install shell-command-logger[full]
 ```
 
 Or install the bleeding edge version from this repository:
@@ -17,31 +17,36 @@ Or install the bleeding edge version from this repository:
 pip install git+https://github.com/six-two/shell-command-logger
 ```
 
-You should also install `fzf`, which is used by `scl-replay` to let users select a log to replay.
+You should also install `fzf`, which is used by `scl replay` to let users select a log to replay.
+
+You can also install this on an system not directly connected to the Internet, as long as you can put files there (via SSH, SMB, thumbstick).
+Just download/create a zip of this repository, copy it to your target system, unzip it there and run the following command:
+```bash
+pip install .
+```
 
 ## Usage
 
 ### Record
 
-To record a command, you just prefix it with `scl`:
+To record a command, you just prefix it with `scl log`:
 
 ```bash
-scl ls -1 /
+scl log ls -1 /
 ```
 
 
 ### Replay
 
-You can use `scl-replay` to interactively choose and replay a file.
+You can use `scl replay` to interactively choose and replay a file.
 
-- With `scl-replay -f` you can select a file to replay.
-- With `scl-replay -c`you can select a file based on the metadata (command and arguments, timestamp, etc)
-
+- With `scl replay` you can select a file based on the metadata (command and arguments, timestamp, etc)
+- With `scl replay -f` you can select a file to replay.
 
 If you already know the path to the file you want to watch, you can use the `-i` flag:
 
 ```bash
-scl-replay -i ~/.shell-command-logs/nmap/2022w15g_175341_a091.json
+scl replay -i ~/.shell-command-logs/nmap/2022w15g_175341_a091.json
 ```
 
 #### Manual
@@ -52,7 +57,7 @@ If you only want to see the final output, just `cat` the `.log` file:
 cat ~/.shell-command-logs/<command>/<timestamp>.log
 ```
 
-If you want to replay the command on a different system, that does not have `scl-replay` installed, you can also invoke `scriptreplay` directly:
+If you want to replay the command on a different system, that does not have `scl` installed, you can also invoke `scriptreplay` directly:
 
 ```bash
 scriptreplay --log-out ~/.shell-command-logs/<command>/<timestamp>.log --log-timing ~/.shell-command-logs/<command>/<timestamp>.time
@@ -65,16 +70,21 @@ You can reset the configuration to the default settings with the following comma
 If the file did not exist before, it will be created:
 
 ```
-scl-config --defaults
+scl config --defaults
 ```
 
-You can see the current configuration with `scl-config -p` or by viewing the file.
+You can see the current configuration with `scl config` or by viewing the file.
 
 Then you can modify the file by hand or by using the `-s` flag:
 
 ```
-scl-config -s Output datadirectory ~/scl
+scl config -s Output datadirectory ~/scl
 ```
+
+### Aliases
+
+TODO:document
+
 
 ## Advanced usage
 
@@ -107,16 +117,16 @@ You can also create a symlink to log all invocations of a programm automatically
     ...
     ```
     Afterwards the a file should be stored in your shell-command-logger output folder.
-    Thus `scl-replay` should show you the output or show you the command with a current timestamp:
+    Thus `scl replay` should show you the output or show you the command with a current timestamp:
     ```bash
     # if it is the first command recorded
-    $ scl-replay -c
+    $ scl replay
     [scl] Command executed by <user>@<computer> at 2022-04-17Z15:53:41+00:00
     [scl] Command: /usr/bin/nmap localhost
     [...]
 
     # if multiple logs exist
-    $ scl-replay -c
+    $ scl replay
        [ 2022-04-17 16:00:44 | ✔ ] /usr/bin/echo something
     >  [ 2022-04-17 15:53:41 | ✔ ] /usr/bin/nmap localhost
     [...]
@@ -127,12 +137,10 @@ You can also create a symlink to log all invocations of a programm automatically
 
 ## TODOs
 
-- Create `scl-search` to search metadata and output
-    - Allow `scl-search` to be piped into `scl-replay` to narrow down the choices.
-    - Also allow storing search results in a file and let `scl-replay` load it.
-- Add an option to `scl-replay` to only show the final result (instead of real time replay)
-- Rewrite, so that all pip requirements are optional
-- Merge all scrips into one script with subcommands
+- Create `scl search` to search metadata and output
+    - Allow `scl search` to be piped into `scl replay` to narrow down the choices.
+    - Also allow storing search results in a file and let `scl replay` load it.
+- Add an option to `scl replay` to only show the final result (instead of real time replay)
 
 ## Date format
 The normal (Gregorian) caledar is not very intuitive.

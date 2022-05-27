@@ -3,11 +3,8 @@ import io
 import os
 import traceback
 from typing import NamedTuple
-# pip dependencies
-from config_path import ConfigPath
-from termcolor import cprint
 # local
-from . import get_name_and_version, print_error, DoNotPrintMeException
+from . import get_name_and_version, print_error, DoNotPrintMeException, cprint
 
 class SclConfig(NamedTuple):
     # output section
@@ -17,7 +14,8 @@ class SclConfig(NamedTuple):
     command_format: str
     replay_speed: float
 
-CONFIG_PATH = ConfigPath("shell-command-logger", "six-two.dev", ".conf")
+CONFIG_FILE = os.path.expanduser("~/.config/shell-command-logger/config")
+
 
 DEFAULT_CONFIG = SclConfig(
     output_dir="~/.shell-command-logs/",
@@ -60,10 +58,9 @@ def create_template_file(output_dir: str) -> None:
 
 def load_config() -> SclConfig:
     try:
-        path = CONFIG_PATH.readFilePath()
-        if path:
+        if os.path.isfile(CONFIG_FILE):
             # path exists and config can be read
-            return parse_config_file(path)
+            return parse_config_file(CONFIG_FILE)
         else:
             # No config file exists
             return DEFAULT_CONFIG
@@ -119,9 +116,12 @@ def parser_to_text(parser: ConfigParser) -> str:
 
 
 def save_parser_as_config(parser: ConfigParser) -> None:
-    path = CONFIG_PATH.saveFilePath(mkdir=True)
-    with open(path, "w") as f:
+    # Ensure parent dir exists
+    parent_dir = os.path.dirname(CONFIG_FILE)
+    os.makedirs(parent_dir, exist_ok=True)
+
+    with open(CONFIG_FILE, "w") as f:
         parser.write(f)
-    print(f"Wrote config to '{path}':")
+    print(f"Wrote config to '{CONFIG_FILE}':")
     print(parser_to_text(parser).rstrip())
 

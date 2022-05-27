@@ -7,10 +7,8 @@ import subprocess
 import sys
 import traceback
 from typing import Optional
-# pip dependency
-from termcolor import cprint
 # local
-from . import get_version_string, print_error, backports
+from . import get_version_string, print_error, backports, cprint
 from .config import load_config, sanitize_config, SclConfig
 
 EXTENSIONS = [".json", ".log", ".time"]

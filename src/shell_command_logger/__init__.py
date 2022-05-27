@@ -1,9 +1,14 @@
 import traceback
 # pip dependency
-from termcolor import cprint
+try:
+    from termcolor import cprint
+except ImportError:
+    # Fallback: When termcolor is not installed, just print everything without color
+    def cprint(message, *args, **kwargs) -> None:
+        print(message)
 
 # @SYNC: /setup.cfg -> [metadata] -> version
-__version__ = "0.2.6"
+__version__ = "0.3.0"
 
 
 class DoNotPrintMeException(Exception):
