@@ -2,6 +2,7 @@ curl
 dig
 dirb
 enum4linux
+ffuf
 host
 gobuster
 nc
@@ -12,5 +13,9 @@ nslookup
 masscan
 msfconsole
 smbclient
+sqlmap
+ssh-audit
+sslyze
+testssl
 wget
 whois

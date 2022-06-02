@@ -2,7 +2,6 @@ import os
 import shutil
 import sys
 
-SCL_COMMAND = "scl"
 CONFIG_FILE = os.path.expanduser("~/.config/shell-command-logger/aliases.txt")
 DEFAULT_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "default_aliases.txt")
 
@@ -16,7 +15,7 @@ def check_program_name(program: str) -> None:
 
 def shell_alias(shell: str, program: str) -> str:
     if shell in ["bash", "fish", "zsh"]:
-        return f"alias {program}='{SCL_COMMAND} {program}'"
+        return f"alias {program}='scl log {program}'"
     else:
         raise ValueError(f"Unknown shell '{shell}'. Supported are bash, fish and zsh")
 
