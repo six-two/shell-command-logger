@@ -15,6 +15,11 @@ class SclConfig(NamedTuple):
     replay_speed: float
 
 CONFIG_FILE = os.path.expanduser("~/.config/shell-command-logger/config")
+_KEY_SECTION = "config"
+_KEY_DATA_DIRECTORY = "data-directory"
+_KEY_ADD_README_FILE = "create-readme"
+_KEY_COMMAND_FORMAT = "command-format"
+_KEY_REPLAY_SPEED = "replay-speed"
 
 
 DEFAULT_CONFIG = SclConfig(
@@ -77,16 +82,16 @@ def parse_config_file(path: str) -> SclConfig:
     config.read(path)
 
     try:
-        section_output = config["Output"]
-        output_dir = section_output.get("DataDirectory", DEFAULT_CONFIG.output_dir)
-        add_readme = section_output.getboolean("AddReadmeFile", fallback=DEFAULT_CONFIG.add_readme)
-
-        section_replay = config["Replay"]
-        command_format = section_replay.get("CommandFormat", DEFAULT_CONFIG.command_format)
-        replay_speed = section_replay.getfloat("ReplaySpeed", DEFAULT_CONFIG.replay_speed)
+        section_config = config[_KEY_SECTION]
     except KeyError as e:
-        print_error(f"Configuration file is missing section {e}. You can create a valid config file with `scl-config --defaults`")
+        print_error(f"Configuration file is missing section {e}. You can create a valid config file with `scl config --defaults`")
         raise DoNotPrintMeException()
+
+    # Read values from the config file. If not defined, use the default value
+    output_dir = section_config.get(_KEY_DATA_DIRECTORY, DEFAULT_CONFIG.output_dir)
+    add_readme = section_config.getboolean(_KEY_ADD_README_FILE, DEFAULT_CONFIG.add_readme)
+    command_format = section_config.get(_KEY_COMMAND_FORMAT, DEFAULT_CONFIG.command_format)
+    replay_speed = section_config.getfloat(_KEY_REPLAY_SPEED, DEFAULT_CONFIG.replay_speed)
 
     return SclConfig(
         output_dir=output_dir,
@@ -98,13 +103,11 @@ def parse_config_file(path: str) -> SclConfig:
 
 def config_to_parser(scl_config: SclConfig) -> ConfigParser:
     parser = ConfigParser()
-    parser["Output"] = {
-        "DataDirectory": scl_config.output_dir,
-        "AddReadmeFile": scl_config.add_readme,
-    }
-    parser["Replay"] = {
-        "CommandFormat": scl_config.command_format,
-        "ReplaySpeed": scl_config.replay_speed,
+    parser[_KEY_SECTION] = {
+        _KEY_DATA_DIRECTORY: scl_config.output_dir,
+        _KEY_ADD_README_FILE: scl_config.add_readme,
+        _KEY_COMMAND_FORMAT: scl_config.command_format,
+        _KEY_REPLAY_SPEED: scl_config.replay_speed,
     }
     return parser
 

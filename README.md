@@ -158,7 +158,7 @@ You can also create a symlink to log all invocations of a programm automatically
 - Create `scl search` to search metadata and output
     - Allow `scl search` to be piped into `scl replay` to narrow down the choices.
     - Also allow storing search results in a file and let `scl replay` load it.
-- Add an option to `scl replay` to only show the final result (instead of real time replay)
+- Add a self check, that checks python dependencies and external programs
 
 ## Date format
 The normal (Gregorian) caledar is not very intuitive.

@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# Call me like this: "scl-alias --print bash | source"
-# This does not seem to work in zsh. Workaround: "scl-alias -p zsh > /tmp/zsh && source /tmp/zsh"
 import argparse
 import os
 import sys
