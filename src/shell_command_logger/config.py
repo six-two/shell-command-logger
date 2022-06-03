@@ -4,7 +4,7 @@ import os
 import traceback
 from typing import NamedTuple
 # local
-from . import get_name_and_version, print_error, DoNotPrintMeException, cprint
+from . import get_name_and_version, print_error, DoNotPrintMeException, print_color
 
 class SclConfig(NamedTuple):
     # output section
@@ -56,7 +56,7 @@ def create_template_file(output_dir: str) -> None:
             with open(output_path, "w") as f:
                 f.write(template)
             
-            cprint("[INFO] Created README file in output directory", "blue")
+            print_color("[INFO] Created README file in output directory", "blue")
         except Exception:
             print_error("[ERROR] Failed to create the template file", print_stacktrace=True)
 
@@ -102,13 +102,15 @@ def parse_config_file(path: str) -> SclConfig:
 
 
 def config_to_parser(scl_config: SclConfig) -> ConfigParser:
-    parser = ConfigParser()
-    parser[_KEY_SECTION] = {
+    config_as_dict: dict = {
         _KEY_DATA_DIRECTORY: scl_config.output_dir,
         _KEY_ADD_README_FILE: scl_config.add_readme,
         _KEY_COMMAND_FORMAT: scl_config.command_format,
-        _KEY_REPLAY_SPEED: scl_config.replay_speed,
+        _KEY_REPLAY_SPEED: scl_config.replay_speed, 
     }
+
+    parser = ConfigParser()
+    parser[_KEY_SECTION] = config_as_dict
     return parser
 
 

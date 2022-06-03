@@ -1,10 +1,18 @@
 import traceback
+from typing import Optional, Callable
 # pip dependency
+_cprint: Optional[Callable] = None
 try:
-    from termcolor import cprint
+    from termcolor import cprint as _cprint
 except ImportError:
-    # Fallback: When termcolor is not installed, just print everything without color
-    def cprint(message, *args, **kwargs) -> None:
+    pass
+
+def print_color(message, color, bold: bool = False) -> None:
+    if _cprint:
+        attrs = ["bold"] if bold else None
+        _cprint(message, color, attrs=attrs)
+    else:
+        # Fallback: When termcolor is not installed, just print everything without color
         print(message)
 
 # @SYNC: /setup.cfg -> [metadata] -> version
@@ -21,7 +29,7 @@ class DoNotPrintMeException(Exception):
 
 
 def print_error(message, print_stacktrace: bool = False, raise_error: bool = False):
-    cprint(f"[ERROR] {message}", "red", attrs=["bold"])
+    print_color(f"[ERROR] {message}", "red", bold=True)
     if print_stacktrace:
         traceback.print_exc()
     if raise_error:

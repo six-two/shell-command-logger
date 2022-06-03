@@ -8,7 +8,7 @@ import sys
 import traceback
 from typing import Optional
 # local
-from . import get_version_string, print_error, backports, cprint
+from . import get_version_string, print_error, backports, print_color
 from .config import load_config, sanitize_config, SclConfig
 
 EXTENSIONS = [".json", ".log", ".time"]
@@ -64,8 +64,8 @@ def print_header(metadata: dict) -> None:
     hostname = metadata["hostname"]
     start_time = metadata["start_time"]
 
-    cprint(f"[scl] Command executed by {user}@{hostname} at {start_time}", "blue", attrs=["bold"])
-    cprint(f"[scl] Command: {command}", "blue", attrs=["bold"])
+    print_color(f"[scl] Command executed by {user}@{hostname} at {start_time}", "blue", bold=True)
+    print_color(f"[scl] Command: {command}", "blue", bold=True)
 
 
 def print_footer(metadata: dict) -> None:
@@ -74,11 +74,11 @@ def print_footer(metadata: dict) -> None:
     error_message = metadata["error_message"]
 
     if status_code == -1:
-        cprint(f"[scl] Exited at {end_time} because of internal error", "red", attrs=["bold"])
-        cprint(f"[scl] Error message: {error_message}", "red", attrs=["bold"])
+        print_color(f"[scl] Exited at {end_time} because of internal error", "red", bold=True)
+        print_color(f"[scl] Error message: {error_message}", "red", bold=True)
     else:
         color = "green" if status_code == 0 else "red"
-        cprint(f"[scl] Exited at {end_time} with code {status_code}", color, attrs=["bold"])
+        print_color(f"[scl] Exited at {end_time} with code {status_code}", color, bold=True)
 
 
 def remove_extension(path: str) -> str:
@@ -91,7 +91,7 @@ def remove_extension(path: str) -> str:
 def select_file(scl_config: SclConfig) -> Optional[str]:
     log_files = backports.root_dir_glob("**/*.log", root_dir=scl_config.output_dir, recursive=True)
     if not log_files:
-        cprint("No command log files found!", "red")
+        print_color("No command log files found!", "red")
         return None
     elif len(log_files) == 1:
         # automatically return the only match
@@ -104,21 +104,21 @@ def select_file(scl_config: SclConfig) -> Optional[str]:
         try:
             process_result = subprocess.run([FZF_PATH], input=log_files_text.encode(), stdout=subprocess.PIPE)
         except FileNotFoundError:
-            cprint(f"[ERROR] Program '{FZF_PATH}' not found. Please install it (and add it to your $PATH)", "red", attrs=["bold"])
+            print_color(f"[ERROR] Program '{FZF_PATH}' not found. Please install it (and add it to your $PATH)", "red", bold=True)
             return None
         
         if process_result.returncode == 0:
             fzf_choice = process_result.stdout.decode().strip()
             return os.path.join(scl_config.output_dir, fzf_choice)
         else:
-            cprint(f"fzf failed with code {process_result.returncode}")
+            print_color(f"fzf failed with code {process_result.returncode}", "red", bold=True)
             return None
 
 
 def select_command(scl_config: SclConfig) -> Optional[str]:
     log_files = backports.root_dir_glob("**/*.json", root_dir=scl_config.output_dir, recursive=True)
     if not log_files:
-        cprint("No command log files found!", "red")
+        print_color("No command log files found!", "red")
         return None
     elif len(log_files) == 1:
         # automatically return the only match
@@ -134,7 +134,7 @@ def select_command(scl_config: SclConfig) -> Optional[str]:
         try:
             process_result = subprocess.run([FZF_PATH], input=log_files_text.encode(), stdout=subprocess.PIPE)
         except FileNotFoundError:
-            cprint(f"[ERROR] Program '{FZF_PATH}' not found. Please install it (and add it to your $PATH)", "red", attrs=["bold"])
+            print_color(f"[ERROR] Program '{FZF_PATH}' not found. Please install it (and add it to your $PATH)", "red", bold=True)
             return None
         
         if process_result.returncode == 0:
@@ -142,7 +142,7 @@ def select_command(scl_config: SclConfig) -> Optional[str]:
             fzf_index = log_file_labels.index(fzf_choice)
             return log_files[fzf_index]
         else:
-            cprint(f"[ERROR] fzf failed with code {process_result.returncode}", "red")
+            print_color(f"[ERROR] fzf failed with code {process_result.returncode}", "red", bold=True)
             return None
 
 class CommandFormater:
