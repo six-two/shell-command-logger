@@ -50,7 +50,7 @@ def parse_metadata(file_path: str) -> Metadata:
             user=_get_string_field(data, "user"),
             hostname=_get_string_field(data, "hostname"),
             start_time_utc=start_time_utc,
-            end_time_utc=end_time_utc,#TODO
+            end_time_utc=end_time_utc,
             error_message=error_message,
             status_code=status_code,
         )

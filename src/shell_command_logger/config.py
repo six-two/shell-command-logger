@@ -19,12 +19,13 @@ class SclConfig(NamedTuple):
     # replay settings
     command_format: str
     replay_speed: float
-    # Run a command to let the user choose a value (fer example fzf, dmenu, etc). Must read input from stdin and output the selection to stdout
-    # @TODO: make list[str]
+    # Run a command to let the user choose a value (for example 'fzf', 'dmenu -l 10', etc). Must read input from stdin and output the selection to stdout
     fzf_executable: str
 
 
 CONFIG_FILE = os.path.expanduser("~/.config/shell-command-logger/config")
+SYSTEM_CONFIG_FILE = os.path.expanduser("/etc/shell-command-logger/config")
+
 _KEY_SECTION = "config"
 _KEY_DATA_DIRECTORY = "data-directory"
 _KEY_ADD_README_FILE = "create-readme"
@@ -91,6 +92,10 @@ def load_config() -> SclConfig:
         if os.path.isfile(CONFIG_FILE):
             # path exists and config can be read
             return parse_config_file(CONFIG_FILE)
+        elif os.path.isfile(SYSTEM_CONFIG_FILE):
+            # Fall back to system wide configuration
+            print_color(f"Loading system wide configuration from {SYSTEM_CONFIG_FILE}", "yellow")
+            return parse_config_file(SYSTEM_CONFIG_FILE)
         else:
             # No config file exists
             return DEFAULT_CONFIG

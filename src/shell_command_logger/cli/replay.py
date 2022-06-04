@@ -21,7 +21,6 @@ def populate_agrument_parser(ap) -> None:
     mutex.add_argument("-i", "--input", metavar=("path"), help="the input file containing the command output")
     mutex.add_argument("-f", "--select-file", action="store_true", help="interactively search the file names")
 
-    # @TODO: add more scriptreplay flags (like --divisor, --maxdelay)
     ap.add_argument("-q", "--quiet", action="store_true", help="only show original command output. Do not show metadata")
     ap.add_argument("-s", "--skip", action="store_true", help="skip the replay, only show the final result")
 

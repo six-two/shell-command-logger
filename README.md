@@ -161,6 +161,18 @@ You can also create a symlink to log all invocations of a programm automatically
 - Add a self check, that checks python dependencies and external programs
 - Add a subcommand for managing symlinks
 - Create proper documentation for users (mkdocs site?)
+- Add option to skip ignore `output-limit` for `scl log`
+- Add more scriptreplay flags (like --divisor, --maxdelay) to `scl replay`
+
+### Known issues
+
+- Setting a `replay-speed` > 1 will finish the replay immediately.
+    Steps to reproduce:
+    ```bash
+    scl log sleep 10
+    scl config --set replay-speed 1.01
+    scl replay
+    ```
 
 ## Date format
 The normal (Gregorian) caledar is not very intuitive.

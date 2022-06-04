@@ -12,8 +12,6 @@ from . import get_version_string, print_error, backports, print_color
 from .config import load_config, sanitize_config, SclConfig, _KEY_FZF_EXECUTABLE
 
 EXTENSIONS = [".json", ".log", ".time"]
-# @TODO: read from config
-FZF_PATH = "fzf"
 
 
 def replay_command(output_file: str, scl_config: SclConfig, only_show_original_output: bool = False, skip_replay: bool = False) -> int:
@@ -32,8 +30,7 @@ def replay_command(output_file: str, scl_config: SclConfig, only_show_original_o
             "scriptreplay",
             "--log-out", f"{output_file}.log", # read the output file
             "--log-timing", f"{output_file}.time", # also read the timing file
-            "--divisor", speed, # @TODO why does this finish immediately with values > 1?
-            # PoC: `scl c -s Replay replayspeed 1.1` then `scl r` something that takes a while -> replay finishes immediately
+            "--divisor", speed,
         ]
 
         # Execute scriptreplay
@@ -118,9 +115,9 @@ def select_formatted(scl_config: SclConfig, format_function: Callable[[str],str]
         log_files_labels_text = "\n".join(sorted(log_file_labels))
         # Pass choices via stdin, read result from stdout, pass through stderr to show the menu
         try:
-            process_result = subprocess.run([scl_config.fzf_executable], input=log_files_labels_text.encode(), stdout=subprocess.PIPE)
-        except FileNotFoundError:
-            print_color(f"[ERROR] Program '{scl_config.fzf_executable}' not found. Please install it and add it to your $PATH (or configure the {_KEY_FZF_EXECUTABLE} setting)", "red", bold=True)
+            process_result = subprocess.run(scl_config.fzf_executable, shell=True, input=log_files_labels_text.encode(), stdout=subprocess.PIPE)
+        except FileNotFoundError as ex:
+            print_color(f"[ERROR] Program '{ex}' not found. Please install it and add it to your $PATH (or configure the {_KEY_FZF_EXECUTABLE} setting)", "red", bold=True)
             return None
         
         if process_result.returncode == 0:
@@ -158,7 +155,6 @@ class CommandFormater:
         return shlex.join(command) if command is not None else "<unknown command>"
 
     def format_command(self, command_format: str) -> str:
-        # TODO: use code in search.py
         command = self.get_command()
         end_time = self.get_time("end_time")
         hostname = self.metadata.get("hostname", "<unknown hostname>")

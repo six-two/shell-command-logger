@@ -14,8 +14,6 @@ from .config import SclConfig
 # This also works when the file is a symlink (gets the original dir)
 REAL_SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
-# @TODO: first try ~/.config/shell-command-logger/config.yaml, then /etc/shell-command-logger/config.yaml
-
 
 # @LINK: Opposite of pretty_exec.py:decode_command()
 def encode_command(command_and_arguments: list[str]) -> str:
@@ -37,7 +35,7 @@ def record_command(scl_config: SclConfig, command_and_arguments: list[str], outp
         "--command", shlex.join(inner_command), # runs our command, which displays the command, timestamp, exit code, etc
         "--return", # return exit code of the child process
         "--output-limit", scl_config.script_output_limit, # If the output is larger than this, something probably went wrong.
-        # This prevents your harddrive from overflowing. @TODO: add a flag/option to disable this
+        # This prevents your harddrive from overflowing.
         "--quiet", # Hide the "Script started/stopped" messages
     ]
 
