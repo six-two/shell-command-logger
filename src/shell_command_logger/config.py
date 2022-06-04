@@ -33,7 +33,7 @@ _KEY_COMMAND_FORMAT = "command-format"
 _KEY_REPLAY_SPEED = "replay-speed"
 _KEY_OUTPUT_LIMIT = "script-output-limit"
 _KEY_FILE_NAME_RANDOM_BYTES = "file-name-random-bytes"
-_KEY_FZF_EXECUTABLE = "fzf-executable"
+_KEY_FZF_EXECUTABLE = "fzf-command"
 
 
 DEFAULT_CONFIG = SclConfig(
