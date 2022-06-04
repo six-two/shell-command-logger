@@ -10,6 +10,7 @@ import shell_command_logger.cli.alias
 import shell_command_logger.cli.config
 import shell_command_logger.cli.log
 import shell_command_logger.cli.replay
+import shell_command_logger.cli.search
 
 class SubcommandHandlerException(Exception):
     pass
@@ -62,6 +63,7 @@ def main():
     handler.register_module(shell_command_logger.cli.config)
     handler.register_module(shell_command_logger.cli.log)
     handler.register_module(shell_command_logger.cli.replay)
+    handler.register_module(shell_command_logger.cli.search)
 
     # Run the selected submodule
     args = ap.parse_args()

@@ -170,6 +170,7 @@ class CommandFormater:
         return shlex.join(command) if command is not None else "<unknown command>"
 
     def format_command(self, command_format: str) -> str:
+        # TODO: use code in search.py
         command = self.get_command()
         end_time = self.get_time("end_time")
         hostname = self.metadata.get("hostname", "<unknown hostname>")

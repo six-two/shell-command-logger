@@ -159,6 +159,8 @@ You can also create a symlink to log all invocations of a programm automatically
     - Allow `scl search` to be piped into `scl replay` to narrow down the choices.
     - Also allow storing search results in a file and let `scl replay` load it.
 - Add a self check, that checks python dependencies and external programs
+- Add a subcommand for managing symlinks
+- Create proper documentation for users (mkdocs site?)
 
 ## Date format
 The normal (Gregorian) caledar is not very intuitive.
