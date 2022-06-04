@@ -3,6 +3,7 @@ import argparse
 import os
 import sys
 # import the code from this package
+from shell_command_logger import print_color
 from shell_command_logger.replay import select_file, select_command, remove_extension, replay_command
 from shell_command_logger.config import load_config, sanitize_config, SclConfig, config_to_parser, save_parser_as_config, parser_to_text, DEFAULT_CONFIG, CONFIG_FILE, _KEY_SECTION
 
@@ -52,8 +53,13 @@ def subcommand_main(args) -> int:
         text = parser_to_text(parser)
         print(text.rstrip())
 
+    try:
+        sanitize_config(load_config())
+        return 0
+    except Exception as ex:
+        print_color(f"Error validating config: {ex}", "red", bold=True)
+        return 1
     # By default return 0 (success)
-    return 0
 
 
 def _main():

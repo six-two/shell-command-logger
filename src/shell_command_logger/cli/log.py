@@ -81,9 +81,9 @@ def _record_command(command: list[str]):
     output_dir = os.path.join(scl_config.output_dir, command_name)
     os.makedirs(output_dir, exist_ok=True)
 
-    output_file = os.path.join(output_dir, get_timestamp_filename())
+    output_file = os.path.join(output_dir, get_timestamp_filename(scl_config))
 
-    exit_code = record_command(command, output_file)
+    exit_code = record_command(scl_config, command, output_file)
     return exit_code
 
 

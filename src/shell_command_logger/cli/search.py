@@ -29,7 +29,6 @@ def subcommand_main(args) -> int:
     scl_config = sanitize_config(load_config())
     search_results = get_all_searchable_commands(scl_config)
 
-    print(args.status_code, args.exclude_status_code)
     if args.status_code != None:
         search_results = [x for x in search_results if x.metadata.status_code == args.status_code]
     elif args.exclude_status_code != None:

@@ -5,6 +5,8 @@ import sys
 from typing import Callable
 # import the code from this package
 import shell_command_logger
+from shell_command_logger import print_color
+from shell_command_logger.config import InvalidConfigException
 from shell_command_logger.alias import print_text_to_source, load_alias_file, save_alias_file, CONFIG_FILE
 import shell_command_logger.cli.alias
 import shell_command_logger.cli.config
@@ -67,7 +69,14 @@ def main():
 
     # Run the selected submodule
     args = ap.parse_args()
-    exit_code = handler.subcommand_main(args)
+    try:
+        exit_code = handler.subcommand_main(args)
+    except InvalidConfigException as ex:
+        print_color("Your configuration is not valid:", "red", bold=True)
+        print_color(str(ex), "red", bold=True)
+        print_color("Hint: You can use 'scl config --defaults' to reset your configuration to the defaults", "yellow")
+        exit_code = 1
+  
     sys.exit(exit_code)
 
 if __name__ == "__main__":

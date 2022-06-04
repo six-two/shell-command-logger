@@ -6,11 +6,17 @@ from typing import NamedTuple
 # local
 from . import get_name_and_version, print_error, DoNotPrintMeException, print_color
 
+class InvalidConfigException(Exception):
+    pass
+
+
 class SclConfig(NamedTuple):
-    # output section
+    # output settings
     output_dir: str
     add_readme: bool
-    # replay section
+    script_output_limit: str
+    file_name_random_bytes: int
+    # replay settings
     command_format: str
     replay_speed: float
 
@@ -20,6 +26,8 @@ _KEY_DATA_DIRECTORY = "data-directory"
 _KEY_ADD_README_FILE = "create-readme"
 _KEY_COMMAND_FORMAT = "command-format"
 _KEY_REPLAY_SPEED = "replay-speed"
+_KEY_OUTPUT_LIMIT = "script-output-limit"
+_KEY_FILE_NAME_RANDOM_BYTES = "file-name-random-bytes"
 
 
 DEFAULT_CONFIG = SclConfig(
@@ -27,6 +35,8 @@ DEFAULT_CONFIG = SclConfig(
     add_readme=True,
     command_format="[ {start_time} | {success} ] {command}",
     replay_speed=1.0,
+    script_output_limit="1g",
+    file_name_random_bytes=2,
 )
 
 
@@ -36,6 +46,12 @@ def sanitize_config(config: SclConfig) -> SclConfig:
 
     if config.add_readme:
         create_template_file(output_dir)
+
+    if config.replay_speed <= 0:
+        raise InvalidConfigException(f"Config setting '{_KEY_REPLAY_SPEED}' needs to be larger than zero")
+
+    if config.file_name_random_bytes < 1 or config.file_name_random_bytes > 100:
+        raise InvalidConfigException(f"Config setting '{_KEY_FILE_NAME_RANDOM_BYTES}' needs to be between 1 and 100")
 
     return config._replace(output_dir=output_dir)
 
@@ -92,12 +108,16 @@ def parse_config_file(path: str) -> SclConfig:
     add_readme = section_config.getboolean(_KEY_ADD_README_FILE, DEFAULT_CONFIG.add_readme)
     command_format = section_config.get(_KEY_COMMAND_FORMAT, DEFAULT_CONFIG.command_format)
     replay_speed = section_config.getfloat(_KEY_REPLAY_SPEED, DEFAULT_CONFIG.replay_speed)
+    script_output_limit = section_config.get(_KEY_OUTPUT_LIMIT, DEFAULT_CONFIG.script_output_limit)
+    file_name_random_bytes = section_config.getint(_KEY_FILE_NAME_RANDOM_BYTES, DEFAULT_CONFIG.file_name_random_bytes)
 
     return SclConfig(
         output_dir=output_dir,
         add_readme=add_readme,
         command_format=command_format,
         replay_speed=replay_speed,
+        script_output_limit=script_output_limit,
+        file_name_random_bytes=file_name_random_bytes,
     )
 
 
@@ -106,7 +126,9 @@ def config_to_parser(scl_config: SclConfig) -> ConfigParser:
         _KEY_DATA_DIRECTORY: scl_config.output_dir,
         _KEY_ADD_README_FILE: scl_config.add_readme,
         _KEY_COMMAND_FORMAT: scl_config.command_format,
-        _KEY_REPLAY_SPEED: scl_config.replay_speed, 
+        _KEY_REPLAY_SPEED: scl_config.replay_speed,
+        _KEY_OUTPUT_LIMIT: scl_config.script_output_limit,
+        _KEY_FILE_NAME_RANDOM_BYTES: scl_config.file_name_random_bytes,
     }
 
     parser = ConfigParser()
