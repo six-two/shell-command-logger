@@ -5,6 +5,22 @@
 
 This program uses the linux `script` and `scriptreplay` commands to record and replay the output of any desired commands.
 
+## Documentation
+
+For an quick introduction, installation guide, and more please consult the [documentation](https://shell-command-logger.six-two.dev/).
+It is also provided in the `docs` folder and can be locally viewed by following these steps:
+
+1. Install development dependencies (only required once):
+    ```bash
+    python3 -m pip install -r requirements-dev.txt
+    ```
+2. Building the documentation and starting a local webserver:
+    ```bash
+    mkdocs serve
+    ```
+3. Open [localhost:8000](http://localhost:8000)
+
+
 ## Installation
 
 Install via `pip`:

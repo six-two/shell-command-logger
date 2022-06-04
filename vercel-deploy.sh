@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# show the executed commands (useful for debugging)
+set -x
+
 # cd into the repo's root dir
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
