@@ -19,6 +19,10 @@ class SclConfig(NamedTuple):
     # replay settings
     command_format: str
     replay_speed: float
+    # Run a command to let the user choose a value (fer example fzf, dmenu, etc). Must read input from stdin and output the selection to stdout
+    # @TODO: make list[str]
+    fzf_executable: str
+
 
 CONFIG_FILE = os.path.expanduser("~/.config/shell-command-logger/config")
 _KEY_SECTION = "config"
@@ -28,6 +32,7 @@ _KEY_COMMAND_FORMAT = "command-format"
 _KEY_REPLAY_SPEED = "replay-speed"
 _KEY_OUTPUT_LIMIT = "script-output-limit"
 _KEY_FILE_NAME_RANDOM_BYTES = "file-name-random-bytes"
+_KEY_FZF_EXECUTABLE = "fzf-executable"
 
 
 DEFAULT_CONFIG = SclConfig(
@@ -37,12 +42,16 @@ DEFAULT_CONFIG = SclConfig(
     replay_speed=1.0,
     script_output_limit="1g",
     file_name_random_bytes=2,
+    fzf_executable="fzf",
 )
 
 
 def sanitize_config(config: SclConfig) -> SclConfig:
     output_dir = os.path.expanduser(config.output_dir)
     os.makedirs(output_dir, exist_ok=True)
+
+    if not config.fzf_executable.strip():
+        raise InvalidConfigException(f"Setting '{_KEY_FZF_EXECUTABLE}' can not be empty")
 
     if config.add_readme:
         create_template_file(output_dir)
@@ -100,7 +109,7 @@ def parse_config_file(path: str) -> SclConfig:
     try:
         section_config = config[_KEY_SECTION]
     except KeyError as e:
-        print_error(f"Configuration file is missing section {e}. You can create a valid config file with `scl config --defaults`")
+        print_error(f"Configuration file is missing section '{_KEY_SECTION}'. You can create a valid config file with `scl config --defaults`")
         raise DoNotPrintMeException()
 
     # Read values from the config file. If not defined, use the default value
@@ -110,6 +119,7 @@ def parse_config_file(path: str) -> SclConfig:
     replay_speed = section_config.getfloat(_KEY_REPLAY_SPEED, DEFAULT_CONFIG.replay_speed)
     script_output_limit = section_config.get(_KEY_OUTPUT_LIMIT, DEFAULT_CONFIG.script_output_limit)
     file_name_random_bytes = section_config.getint(_KEY_FILE_NAME_RANDOM_BYTES, DEFAULT_CONFIG.file_name_random_bytes)
+    fzf_executable = section_config.get(_KEY_FZF_EXECUTABLE, DEFAULT_CONFIG.fzf_executable)
 
     return SclConfig(
         output_dir=output_dir,
@@ -118,6 +128,7 @@ def parse_config_file(path: str) -> SclConfig:
         replay_speed=replay_speed,
         script_output_limit=script_output_limit,
         file_name_random_bytes=file_name_random_bytes,
+        fzf_executable=fzf_executable,
     )
 
 
@@ -129,6 +140,7 @@ def config_to_parser(scl_config: SclConfig) -> ConfigParser:
         _KEY_REPLAY_SPEED: scl_config.replay_speed,
         _KEY_OUTPUT_LIMIT: scl_config.script_output_limit,
         _KEY_FILE_NAME_RANDOM_BYTES: scl_config.file_name_random_bytes,
+        _KEY_FZF_EXECUTABLE: scl_config.fzf_executable,
     }
 
     parser = ConfigParser()

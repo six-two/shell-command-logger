@@ -34,6 +34,9 @@ def parse_metadata(file_path: str) -> Metadata:
         start_time_str = _get_string_field(data, "start_time")
         start_time_utc = datetime.fromisoformat(start_time_str)
 
+        end_time_str = _get_string_field(data, "end_time")
+        end_time_utc = datetime.fromisoformat(end_time_str)
+
         error_message = data.get("error_message")
         if error_message != None and type(error_message) != str:
             raise Exception(f"Field 'error_message' should be None or a string, but is '{type(error_message)}'")
@@ -47,7 +50,7 @@ def parse_metadata(file_path: str) -> Metadata:
             user=_get_string_field(data, "user"),
             hostname=_get_string_field(data, "hostname"),
             start_time_utc=start_time_utc,
-            end_time_utc=start_time_utc,#TODO
+            end_time_utc=end_time_utc,#TODO
             error_message=error_message,
             status_code=status_code,
         )

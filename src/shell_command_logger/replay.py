@@ -6,10 +6,10 @@ import shlex
 import subprocess
 import sys
 import traceback
-from typing import Optional
+from typing import Optional, Callable
 # local
 from . import get_version_string, print_error, backports, print_color
-from .config import load_config, sanitize_config, SclConfig
+from .config import load_config, sanitize_config, SclConfig, _KEY_FZF_EXECUTABLE
 
 EXTENSIONS = [".json", ".log", ".time"]
 # @TODO: read from config
@@ -89,33 +89,20 @@ def remove_extension(path: str) -> str:
 
 
 def select_file(scl_config: SclConfig) -> Optional[str]:
-    log_files = backports.root_dir_glob("**/*.log", root_dir=scl_config.output_dir, recursive=True)
-    if not log_files:
-        print_color("No command log files found!", "red")
-        return None
-    elif len(log_files) == 1:
-        # automatically return the only match
-        only_choice = log_files[0]
-        return os.path.join(scl_config.output_dir, only_choice)
-    else:
-        # use fzf to let the user select the file
-        log_files_text = "\n".join(sorted(log_files))
-        # Pass choices via stdin, read result from stdout, pass through stderr to show the menu
-        try:
-            process_result = subprocess.run([FZF_PATH], input=log_files_text.encode(), stdout=subprocess.PIPE)
-        except FileNotFoundError:
-            print_color(f"[ERROR] Program '{FZF_PATH}' not found. Please install it (and add it to your $PATH)", "red", bold=True)
-            return None
-        
-        if process_result.returncode == 0:
-            fzf_choice = process_result.stdout.decode().strip()
-            return os.path.join(scl_config.output_dir, fzf_choice)
-        else:
-            print_color(f"fzf failed with code {process_result.returncode}", "red", bold=True)
-            return None
+    def format_function(metadata_file: str) -> str:
+        return metadata_file
+    
+    return select_formatted(scl_config, format_function)
 
 
 def select_command(scl_config: SclConfig) -> Optional[str]:
+    def format_function(metadata_file: str) -> str:
+        return CommandFormater(metadata_file).format_command(scl_config.command_format)
+    
+    return select_formatted(scl_config, format_function)
+
+
+def select_formatted(scl_config: SclConfig, format_function: Callable[[str],str]) -> Optional[str]:
     log_files = backports.root_dir_glob("**/*.json", root_dir=scl_config.output_dir, recursive=True)
     if not log_files:
         print_color("No command log files found!", "red")
@@ -126,24 +113,25 @@ def select_command(scl_config: SclConfig) -> Optional[str]:
         return os.path.join(scl_config.output_dir, only_choice)
     else:
         log_files = [os.path.join(scl_config.output_dir, x) for x in sorted(log_files)]
-        log_file_labels = [CommandFormater(x).format_command(scl_config.command_format).strip()
-                            for x in log_files]
+        log_file_labels = [format_function(x).strip() for x in log_files]
         # use fzf to let the user select the file
-        log_files_text = "\n".join(sorted(log_file_labels))
+        log_files_labels_text = "\n".join(sorted(log_file_labels))
         # Pass choices via stdin, read result from stdout, pass through stderr to show the menu
         try:
-            process_result = subprocess.run([FZF_PATH], input=log_files_text.encode(), stdout=subprocess.PIPE)
+            process_result = subprocess.run([scl_config.fzf_executable], input=log_files_labels_text.encode(), stdout=subprocess.PIPE)
         except FileNotFoundError:
-            print_color(f"[ERROR] Program '{FZF_PATH}' not found. Please install it (and add it to your $PATH)", "red", bold=True)
+            print_color(f"[ERROR] Program '{scl_config.fzf_executable}' not found. Please install it and add it to your $PATH (or configure the {_KEY_FZF_EXECUTABLE} setting)", "red", bold=True)
             return None
         
         if process_result.returncode == 0:
+            # May contain a trailing newline, so we strip it
             fzf_choice = process_result.stdout.decode().strip()
             fzf_index = log_file_labels.index(fzf_choice)
             return log_files[fzf_index]
         else:
-            print_color(f"[ERROR] fzf failed with code {process_result.returncode}", "red", bold=True)
+            print_color(f"[ERROR] '{scl_config.fzf_executable}' failed with code {process_result.returncode}", "red", bold=True)
             return None
+
 
 class CommandFormater:
     def __init__(self, metadata_file: str) -> None:
