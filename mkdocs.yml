@@ -1,2 +1,11 @@
 site_name: shell-command-logger
 theme: readthedocs
+
+nav:
+- index.md
+- installation.md
+- configuration.md
+- output-files.md
+- aliases.md
+- symlinks.md
+- todo.md

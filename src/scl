@@ -57,8 +57,11 @@ def main():
         sys.exit(exit_code)
 
     # Setting up argument parser
-    ap = argparse.ArgumentParser(description="The shell-command-logger (scl) allows you to record commands. Afterwards the recorded commands can be replay and searched (not implemented yet).",
-        epilog=f"Installed version: {shell_command_logger.get_version_string()}")
+    ap = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="The shell-command-logger (scl) allows you to record commands. Afterwards the recorded commands can be replay and searched.",
+        epilog=f"Installed version: {shell_command_logger.get_version_string()}\nDocumentation: https://shell-command-logger.six-two.dev/"
+    )
     ap.add_argument("-V", "--version", action="version", version=shell_command_logger.get_version_string())
     handler = SubcommandHandler(ap)
     handler.register_module(shell_command_logger.cli.alias)

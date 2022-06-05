@@ -7,7 +7,8 @@ This program uses the linux `script` and `scriptreplay` commands to record and r
 
 ## Documentation
 
-For an quick introduction, installation guide, and more please consult the [documentation](https://shell-command-logger.six-two.dev/).
+This README just contains basic usage information.
+For more please consult the [documentation](https://shell-command-logger.six-two.dev/).
 It is also provided in the `docs` folder and can be locally viewed by following these steps:
 
 1. Install development dependencies (only required once):
@@ -26,19 +27,6 @@ It is also provided in the `docs` folder and can be locally viewed by following 
 Install via `pip`:
 ```bash
 pip install shell-command-logger[full]
-```
-
-Or install the bleeding edge version from this repository:
-```bash
-pip install git+https://github.com/six-two/shell-command-logger
-```
-
-You should also install `fzf`, which is used by `scl replay` to let users select a log to replay.
-
-You can also install this on an system not directly connected to the Internet, as long as you can put files there (via SSH, SMB, thumbstick).
-Just download/create a zip of this repository, copy it to your target system, unzip it there and run the following command:
-```bash
-pip install .
 ```
 
 ## Usage
@@ -79,136 +67,3 @@ If you want to replay the command on a different system, that does not have `scl
 scriptreplay --log-out ~/.shell-command-logs/<command>/<timestamp>.log --log-timing ~/.shell-command-logs/<command>/<timestamp>.time
 ```
 
-
-### Configuration
-
-You can reset the configuration to the default settings with the following command.
-If the file did not exist before, it will be created:
-
-```
-scl config --defaults
-```
-
-You can see the current configuration with `scl config` or by viewing the file.
-
-Then you can modify the file by hand or by using the `-s` flag:
-
-```
-scl config -s Output datadirectory ~/scl
-```
-
-### Aliases
-
-You can also use `scl alias` to manage aliases.
-By default a bunch of pentest tools are on the alias list.
-The command has flags to add and delete tools, or you can just manually edit/replace the alias file located at `~/.config/shell-command-logger/aliases.txt`.
-
-To activate the aliases in a shell session, `source` the results of `scl alias --print <shell>`.
-Below are commands for the most comon shells:
-
-sh/bash/zsh:
-```bash
-source <(scl alias --print bash)
-```
-
-fish:
-```fish
-scl alias --print fish | source
-```
-
-If you want to use the aliases in every interactive session, put the command in your `~/.bashrc` / `~/.zshrc` / `~/.config/fish/config.fish`
-
-If you want to log every invocation of an program, even when it is called inside a script, you need to use the custom `PATH` + symlink method described further below.
-
-## Advanced usage
-
-### Automatically log certain commands
-
-You can also create a symlink to log all invocations of a programm automatically:
-
-1. Find/add a writeable directory to the beginning of your $PATH. For example:
-    ```bash
-    mkdir ~/.bin
-    echo 'export PATH="$HOME/.bin:$PATH"' >> ~/.bash_profile
-    ```
-2. Find out, where the `scl` binary is installed:
-    ```bash
-    $ which scl
-    /home/<user>/.local/bin/scl
-    ```
-3. Create a symlink named the same as your favourite command. The symlink should be in the folder from step 1 and point to the scl binary (path from step 2). For example:
-    ```bash
-    ln -s /home/<user>/.local/bin/scl ~/.bin/nmap
-    ```
-4. Logout and log back in and check if the $PATH is set correctly:
-    ```bash
-    $ echo $PATH
-    /home/<user>/.bin:/usr/local/sbin:...
-    ```
-5. Try to execute your command:
-    ```bash
-    $ nmap localhost
-    ...
-    ```
-    Afterwards the a file should be stored in your shell-command-logger output folder.
-    Thus `scl replay` should show you the output or show you the command with a current timestamp:
-    ```bash
-    # if it is the first command recorded
-    $ scl replay
-    [scl] Command executed by <user>@<computer> at 2022-04-17Z15:53:41+00:00
-    [scl] Command: /usr/bin/nmap localhost
-    [...]
-
-    # if multiple logs exist
-    $ scl replay
-       [ 2022-04-17 16:00:44 | ✔ ] /usr/bin/echo something
-    >  [ 2022-04-17 15:53:41 | ✔ ] /usr/bin/nmap localhost
-    [...]
-    ```
-
-
-
-
-## TODOs
-
-- Create `scl search` to search metadata and output
-    - Allow `scl search` to be piped into `scl replay` to narrow down the choices.
-    - Also allow storing search results in a file and let `scl replay` load it.
-- Add a self check, that checks python dependencies and external programs
-- Add a subcommand for managing symlinks
-- Create proper documentation for users (mkdocs site?)
-- Add option to skip ignore `output-limit` for `scl log`
-- Add more scriptreplay flags (like --divisor, --maxdelay) to `scl replay`
-
-### Known issues
-
-- Setting a `replay-speed` > 1 will finish the replay immediately.
-    Steps to reproduce:
-    ```bash
-    scl log sleep 10
-    scl config --set replay-speed 1.01
-    scl replay
-    ```
-
-## Date format
-The normal (Gregorian) caledar is not very intuitive.
-Thus I have decided to use an alternative date format, that uses the week number and the type of day.
-The format is `<YYYY>w<WW><D>` where
-
-- `<YYYY>` is the current year (like `2022`)
-- `w` is an indicator, that teh follwoing is a week and not a month
-- `<WW>` is the number of the current week. 
-- `<D>` is the day type expressed as a letter (`a` -> Monday, `b` -> Tueday, ..., `g` -> Sunday)
-
-For example the Tuesday of the 9th week in 2022 would be written as `2022w09b`.
-
-This format is similar to [ISO 8601 week dates](https://en.wikipedia.org/wiki/ISO_8601#Week_dates) (which formats dates like `2022-W092`), but with the following differences:
-
-- The separator between the year and month is `w` instead of `-W` to make the dates shorter (and easier to type)
-- Instead of using a number for the day of the week a letter is used.
-This should be less confusing and still makes dates sortable by lexicographical order
-
-You can obtain today's date in this format with the following bash command:
-```bash
-echo $(date +%Gw%V)$(date +%u | tr '[1-7]' '[a-g]')
-```
