@@ -1,3 +1,8 @@
+---
+hide:
+- toc
+---
+
 # Introduction
 
 I|github|six-two/shell-command-logger|

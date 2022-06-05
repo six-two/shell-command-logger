@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timezone
+from enum import Enum
 import glob
 import json
 import os
@@ -32,10 +33,10 @@ def parse_metadata(file_path: str) -> Metadata:
             raise Exception(f"Field 'command' should be a list, but is '{type(command)}'")
 
         start_time_str = _get_string_field(data, "start_time")
-        start_time_utc = datetime.fromisoformat(start_time_str)
+        start_time_utc = datetime.fromisoformat(start_time_str).replace(tzinfo=timezone.utc)
 
         end_time_str = _get_string_field(data, "end_time")
-        end_time_utc = datetime.fromisoformat(end_time_str)
+        end_time_utc = datetime.fromisoformat(end_time_str).replace(tzinfo=timezone.utc)
 
         error_message = data.get("error_message")
         if error_message != None and type(error_message) != str:
@@ -83,3 +84,38 @@ def get_all_searchable_commands(scl_config: SclConfig) -> list[SearchableCommand
         except Exception as ex:
             print(f"Error parsing metadata file '{file_path}': ", ex, file=sys.stderr)
     return results
+
+
+class RelativeTime(Enum):
+    BEFORE = -1
+    DURING = 0
+    AFTER = 1
+
+
+def get_relative_time(time_to_classify: datetime, start: datetime, end: datetime) -> RelativeTime:
+    if time_to_classify < start:
+        return RelativeTime.BEFORE
+    elif time_to_classify > end:
+        return RelativeTime.AFTER
+    else:
+        return RelativeTime.DURING
+
+
+def is_running_during_timeframe(metadata: Metadata, start: datetime, end: datetime) -> bool:
+    rt_start = get_relative_time(metadata.start_time_utc, start, end)
+
+    if rt_start == RelativeTime.BEFORE:
+        rt_end = get_relative_time(metadata.end_time_utc, start, end)
+        # Started before and ended during/after -> True
+        # Started before but also ended before -> False
+        return rt_end != RelativeTime.BEFORE
+    elif rt_start == RelativeTime.DURING:
+        # Started during the time -> True
+        return True
+    elif rt_start == RelativeTime.AFTER:
+        # Started afterwards -> False
+        return False
+    else:
+        raise Exception("Bug: should not be reached")
+
+

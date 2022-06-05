@@ -32,3 +32,7 @@ nav:
 - symlinks.md
 - todo.md
 - "Web site credits": created-with.md
+
+markdown_extensions:
+  # Allows page specific configurations (like hiding certain elements, setting the title, etc)
+  - meta
