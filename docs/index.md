@@ -1,6 +1,9 @@
 # Introduction
 
-[shell-command-logger](https://github.com/six-two/shell-command-logger) (`scl`) is a tool for building logging, searching and replaying command outputs.
+I|github|six-two/shell-command-logger|
+I|pypi|shell-command-logger|
+
+shell-command-logger (`scl`) is a tool for building logging, searching and replaying command outputs.
 
 <div id="term-rec"></div>
 <link rel="stylesheet" type="text/css" href="/assets/asciinema-player.css" />
