@@ -20,28 +20,28 @@ def populate_agrument_parser(ap) -> None:
     Populates an argparse.ArgumentParser or an subcommand argument parser
     """
     mutex_status = ap.add_mutually_exclusive_group()
-    mutex_status.add_argument("-s", "--status-code", type=int, help="only show results with the given status code. Programs terminated by internal errors have status code -1")
-    mutex_status.add_argument("-S", "--exclude-status-code", type=int, help="exclude results with the given status code. Programs terminated by internal errors have status code -1")
+    mutex_status.add_argument("-s", "--status-codes", nargs="+", type=int, help="only show results with one of the given status codes. Programs terminated by internal errors have status code -1")
+    mutex_status.add_argument("-S", "--exclude-status-codes", nargs="+", type=int, help="exclude results with one of the given status codes. Programs terminated by internal errors have status code -1")
 
     mutex_user = ap.add_mutually_exclusive_group()
-    mutex_user.add_argument("-u", "--user", help="only show commands run by the given user")
-    mutex_user.add_argument("-U", "--exclude-user", help="exclude commands run by the given user")
+    mutex_user.add_argument("-u", "--users", nargs="+", help="only show commands run by one of the given users")
+    mutex_user.add_argument("-U", "--exclude-users", nargs="+", help="exclude commands run by any of the given users")
 
     mutex_hostname = ap.add_mutually_exclusive_group()
-    mutex_hostname.add_argument("--host", help="only show commands run on the given host")
-    mutex_hostname.add_argument("-H", "--exclude-host", help="exclude commands on the given host")
+    mutex_hostname.add_argument("--hosts", nargs="+", help="only show commands run on one of the given hosts")
+    mutex_hostname.add_argument("-H", "--exclude-hosts", nargs="+", help="exclude commands executed on one of the given hosts")
 
     mutex_error = ap.add_mutually_exclusive_group()
-    # No flag -> None | Flag without value -> "" | Flag with value -> value
-    mutex_error.add_argument("-e", "--error", nargs="?", const="", help="only show commands that have an error message. If an value is given, it has to be contained in the error message")
-    mutex_error.add_argument("-E", "--exclude-error", nargs="?", const="", help="exclude commands that have an error message. If a value is given, only commands containing that string in their error message are excluded")
+    mutex_error.add_argument("-e", "--errors", nargs="*", help="only show commands that contain one of the given texts in their error message. No argument will match any command with errors")
+    mutex_error.add_argument("-E", "--exclude-errors", nargs="*", help="exclude commands that contain one of the given texts in their error message. No argument will match any command with errors")
 
     mutex_command = ap.add_mutually_exclusive_group()
-    mutex_command.add_argument("-c", "--command", help="only show commands that contain the given string in one of its arguments")
-    mutex_command.add_argument("-C", "--exclude-command", help="exclude commands that contain the given string in one of its arguments")
+    mutex_command.add_argument("-c", "--commands", nargs="+", help="only show commands that contain at least one of the given strings in one of its arguments")
+    mutex_command.add_argument("-C", "--exclude-commands", nargs="+", help="exclude commands that contain the any of the given strings in one of its arguments")
 
     mutex_time = ap.add_mutually_exclusive_group()
-    mutex_time.add_argument("-d", "--day", help="show commands that were running on the given day (in UTC)")
+    mutex_time.add_argument("-d", "--days", nargs="+", help="show commands that were running on one of the given days (in UTC)")
+    mutex_time.add_argument("-D", "--exclude-days", nargs="+", help="exclude commands that were running on one of the given days (in UTC)")
 
     # TODO: start/end x before/after
     # TODO: runtime longer/shorter than
@@ -55,44 +55,83 @@ def subcommand_main(args) -> int:
     search_results = get_all_searchable_commands(scl_config)
 
     # Filter by status code
-    is_match_status_code = lambda metadata, value: metadata.status_code == value
-    search_results = filter_by_metadata(search_results, args.status_code, args.exclude_status_code, is_match_status_code)
+    is_match_status_code = lambda metadata, value_list: metadata.status_code in value_list
+    search_results = filter_by_metadata(search_results, args.status_codes, args.exclude_status_codes, is_match_status_code)
     
     # Filter by username
-    is_match_user = lambda metadata, value: metadata.user == value
-    search_results = filter_by_metadata(search_results, args.user, args.exclude_user, is_match_user)
+    is_match_user = lambda metadata, value_list: metadata.user in value_list
+    search_results = filter_by_metadata(search_results, args.users, args.exclude_users, is_match_user)
 
     # Filter by hostname
-    is_match_host = lambda metadata, value: metadata.hostname == value
-    search_results = filter_by_metadata(search_results, args.host, args.exclude_host, is_match_host)
+    is_match_host = lambda metadata, value_list: metadata.hostname in value_list
+    search_results = filter_by_metadata(search_results, args.hosts, args.exclude_hosts, is_match_host)
 
     # Filter by error message
-    is_match_error = lambda metadata, value: metadata.error_message and value in metadata.error_message
-    search_results = filter_by_metadata(search_results, args.error, args.exclude_error, is_match_error)
+    def is_match_error(metadata: Metadata, value_list: list[str]) -> bool:
+        if metadata.error_message:
+            if value_list == []:
+                # No values -> matches any error
+                return True
+            else:
+                # Check if any value is a substring of error_message
+                for value in value_list:
+                    if value in metadata.error_message:
+                        # At loast one match found
+                        return True
+                # No matches found
+                return False
+        else:
+            # If no error message exists, it can not match
+            return False
+    search_results = filter_by_metadata(search_results, args.errors, args.exclude_errors, is_match_error)
 
     # Filter by command
-    def is_match_command(metadata: Metadata, value: str) -> bool:
-        for arg in metadata.command:
-            if value in arg:
-                return True
+    def is_match_command(metadata: Metadata, value_list: list[str]) -> bool:
+        for value in value_list:
+            for arg in metadata.command:
+                # Test if ant value is a substring of any argument
+                if value in arg:
+                    return True
         return False
-    search_results = filter_by_metadata(search_results, args.command, args.exclude_command, is_match_command)
+    search_results = filter_by_metadata(search_results, args.commands, args.exclude_commands, is_match_command)
 
-    if args.day:
-        parsed = parse_datetime_string(args.day)
+    if args.days or args.exclude_days:
+        # Only parse the dates once, this makes it necessary to first parse the dates and then define a function that uses the results
+        date_checker = DateChecker(args.days or args.exclude_days)
+        is_match_day = lambda metadata, _: date_checker.is_match(metadata)
 
-        # First second of the day
-        start = parsed.replace(hour=0, minute=0, second=0, microsecond=0)
-        # Last second of the day
-        end = parsed.replace(hour=23, minute=59, second=59, microsecond=999999)
-        # Filter results
-        search_results = [x for x in search_results if is_running_during_timeframe(x.metadata, start, end)]
+        search_results = filter_by_metadata(search_results, args.days, args.exclude_days, is_match_day)
+
 
     for result in search_results:
         print(result.file_path)
 
     # By default return 0 (success)
     return 0
+
+
+class DateChecker:
+    def __init__(self, date_list: list[str]) -> None:
+        self.boundaries: tuple[datetime, datetime] = []
+        for date_string in date_list:
+            parsed = parse_datetime_string(date_string)
+
+            # First second of the day
+            start = parsed.replace(hour=0, minute=0, second=0, microsecond=0)
+            # Last second of the day
+            end = parsed.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+            self.boundaries.append((start, end))
+        print("dbg:datechecker", self.boundaries)
+        # @TODO:BUG parsed date is off by one
+        # $ scl s -d 'June 8'
+        # dbg:datechecker [(datetime.datetime(2022, 6, 7, 0, 0, tzinfo=datetime.timezone.utc), datetime.datetime(2022, 6, 7, 23, 59, 59, 999999, tzinfo=datetime.timezone.utc))]
+
+    def is_match(self, metadata: Metadata) -> bool:
+        for start, end in self.boundaries:
+            if is_running_during_timeframe(metadata, start, end):
+                return True
+        return False
 
 def filter_by_metadata(entries: list[SearchableCommand], value: Any, exclude_value: Any, is_match: Callable[[Metadata, Any], bool]) -> list[SearchableCommand]:
     if value != None:
