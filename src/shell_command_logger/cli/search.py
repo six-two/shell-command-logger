@@ -9,7 +9,7 @@ from typing import Any, Callable
 from shell_command_logger.search import get_all_searchable_commands, SearchableCommand, Metadata, is_running_during_timeframe, get_command_output
 from shell_command_logger.config import load_config, sanitize_config
 from shell_command_logger.backports import parse_datetime_string, round_up_date
-from shell_command_logger.replay import remove_extension
+from shell_command_logger.replay import remove_extension, format_command_builder, select_formatted, replay_command
 
 SUBCOMMAND_NAMES = ["s", "search"]
 ARG_PARSER_OPTIONS = {
@@ -46,10 +46,14 @@ def populate_agrument_parser(ap) -> None:
     mutex_time.add_argument("-D", "--exclude-days", nargs="+", help="exclude commands that were running on one of the given days (in UTC)")
 
     ap.add_argument("-g", "--grep-output", metavar=("PATTERN_AND_FLAGS"), help="only show commands, if `echo <COMMAND_OUTPUT> | grep <PATTERN_AND_FLAGS>` returns the status code 0. Generally this means, that matches were found")
-    # TODO:
 
     # TODO: start/end x before/after
     # TODO: runtime longer/shorter than
+
+    # These arguments specify what to do with the results
+    # TODO -o
+    mutex_action = ap.add_mutually_exclusive_group()
+    mutex_action.add_argument("-r", "--replay", action="store_true", help="interactively select one of the search results to replay")
 
 def subcommand_main(args) -> int:
     """
@@ -111,8 +115,15 @@ def subcommand_main(args) -> int:
     if args.grep_output:
         search_results = filter_by_grep(search_results, args.grep_output)
 
-    for result in search_results:
-        print(result.file_path)
+    if args.replay:
+        file_names = [x.file_path for x in search_results]
+        format_function = format_command_builder(scl_config)
+        path = select_formatted(scl_config, format_function, file_names)
+        if path:
+            replay_command(path, scl_config)
+    else:
+        for result in search_results:
+            print(result.file_path)
 
     # By default return 0 (success)
     return 0

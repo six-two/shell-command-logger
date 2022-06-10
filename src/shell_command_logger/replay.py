@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import glob
 import json
 import os
 import shlex
@@ -15,6 +16,7 @@ EXTENSIONS = [".json", ".log", ".time"]
 
 
 def replay_command(output_file: str, scl_config: SclConfig, only_show_original_output: bool = False, skip_replay: bool = False) -> int:
+    output_file = remove_extension(output_file)
     metadata = None if only_show_original_output else parse_metadata(f"{output_file}.json")
     
     if metadata:
@@ -85,22 +87,22 @@ def remove_extension(path: str) -> str:
     return path
 
 
-def select_file(scl_config: SclConfig) -> Optional[str]:
-    def format_function(metadata_file: str) -> str:
-        return metadata_file
-    
-    return select_formatted(scl_config, format_function)
+def get_command_file_list(scl_config: SclConfig) -> list[str]:
+    pattern = os.path.join(scl_config.output_dir, "**", "*.json")
+    return glob.glob(pattern, recursive=True)
 
 
-def select_command(scl_config: SclConfig) -> Optional[str]:
+def format_filename(metadata_file: str) -> str:
+    return metadata_file
+
+
+def format_command_builder(scl_config: SclConfig) -> Callable:
     def format_function(metadata_file: str) -> str:
         return CommandFormater(metadata_file).format_command(scl_config.command_format)
-    
-    return select_formatted(scl_config, format_function)
+    return format_function
 
 
-def select_formatted(scl_config: SclConfig, format_function: Callable[[str],str]) -> Optional[str]:
-    log_files = backports.root_dir_glob("**/*.json", root_dir=scl_config.output_dir, recursive=True)
+def select_formatted(scl_config: SclConfig, format_function: Callable[[str], str], log_files: list[str]) -> Optional[str]:
     if not log_files:
         print_color("No command log files found!", "red")
         return None

@@ -3,7 +3,7 @@ import argparse
 import os
 import sys
 # import the code from this package
-from shell_command_logger.replay import select_file, select_command, remove_extension, replay_command
+from shell_command_logger.replay import get_command_file_list, select_formatted, format_filename, format_command_builder, remove_extension, replay_command
 from shell_command_logger.config import load_config, sanitize_config, SclConfig
 
 
@@ -34,10 +34,17 @@ def subcommand_main(args) -> int:
 
     if args.input:
         path = args.input
-    elif args.select_file:
-        path = select_file(scl_config)
     else:
-        path = select_command(scl_config)
+        # Get a list of all possible files
+        choices = get_command_file_list(scl_config)
+        if args.select_file:
+            # Show file names
+            formatter = format_filename
+        else:
+            # Show command metadata
+            formatter = format_command_builder(scl_config)
+
+        path = select_formatted(scl_config, formatter, choices)
 
     if path:
         # Allow specifying the basename (like ~/.shell-command-logs/echo/2022w11g_133650_63ff),
