@@ -8,7 +8,7 @@ from typing import Any, Callable
 # import the code from this package
 from shell_command_logger.search import get_all_searchable_commands, SearchableCommand, Metadata, is_running_during_timeframe, get_command_output
 from shell_command_logger.config import load_config, sanitize_config
-from shell_command_logger.backports import parse_datetime_string, round_up_date
+from shell_command_logger.backports import parse_datetime_string
 from shell_command_logger.replay import remove_extension, format_command_builder, select_formatted, replay_command
 
 SUBCOMMAND_NAMES = ["s", "search"]
@@ -157,10 +157,6 @@ class DateChecker:
             end = parsed.replace(hour=23, minute=59, second=59, microsecond=999999)
 
             self.boundaries.append((start, end))
-        print("dbg:datechecker", self.boundaries)
-        # @TODO:BUG parsed date is off by one
-        # $ scl s -d 'June 8'
-        # dbg:datechecker [(datetime.datetime(2022, 6, 7, 0, 0, tzinfo=datetime.timezone.utc), datetime.datetime(2022, 6, 7, 23, 59, 59, 999999, tzinfo=datetime.timezone.utc))]
 
     def is_match(self, metadata: Metadata) -> bool:
         for start, end in self.boundaries:

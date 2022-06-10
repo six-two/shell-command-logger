@@ -1,7 +1,5 @@
 # Aliases
 
-@TODO
-
 You can use `scl alias` to manage aliases.
 By default a bunch of pentest tools are on the alias list.
 The command has flags to add and delete tools, or you can just manually edit/replace the alias file located at `~/.config/shell-command-logger/aliases.txt`.
