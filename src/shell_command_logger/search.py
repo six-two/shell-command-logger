@@ -19,6 +19,7 @@ class Metadata(NamedTuple):
     status_code: int
 
 
+# TODO: Move to a new metadata module
 def parse_metadata(file_path: str) -> Metadata:
     with open(file_path, "r") as f:
         data = json.load(f)
@@ -55,6 +56,8 @@ def parse_metadata(file_path: str) -> Metadata:
             error_message=error_message,
             status_code=status_code,
         )
+    except FileNotFoundError:
+        raise Exception(f"Metadata file does not exist: '{file_path}'")
     except KeyError as ex:
         raise Exception(f"Metadata is missing required key: {ex}")
 

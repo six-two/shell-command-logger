@@ -8,13 +8,16 @@ from typing import Optional, Callable
 # local
 from . import get_version_string, print_error, backports, print_color
 from .config import load_config, sanitize_config, SclConfig, _KEY_FZF_EXECUTABLE
+from .search import parse_metadata, Metadata
 
 EXTENSIONS = [".json", ".log", ".time"]
+PRETT_TIME_FORMAT = "%Y-%m-%d %H:%M:%S UTC"
 
 
 def replay_command(output_file: str, scl_config: SclConfig, only_show_original_output: bool = False, skip_replay: bool = False) -> int:
     output_file = remove_extension(output_file)
-    metadata = None if only_show_original_output else parse_metadata(f"{output_file}.json")
+    metadata_file = f"{output_file}.json"
+    metadata = None if only_show_original_output or not os.path.exists(metadata_file) else parse_metadata(metadata_file)
     
     if metadata:
         print_header(metadata)
@@ -42,39 +45,23 @@ def replay_command(output_file: str, scl_config: SclConfig, only_show_original_o
         return 2
 
 
-def parse_metadata(path: str) -> Optional[dict]:
-    try:
-        with open(path) as f:
-            return json.load(f)
-    except FileNotFoundError:
-        print_error(f"Metadata file does not exist: '{path}'")
-    except Exception as e:
-        print_error(f"Internal error while parsing the metadata in '{path}'", print_stacktrace=True)
-        traceback.print_exc()
-    return None
+def print_header(metadata: Metadata) -> None:
+    command = shlex.join(metadata.command)
+    start_time = metadata.start_time_utc.strftime(PRETT_TIME_FORMAT)
 
-
-def print_header(metadata: dict) -> None:
-    command = shlex.join(metadata["command"])
-    user = metadata["user"]
-    hostname = metadata["hostname"]
-    start_time = metadata["start_time"]
-
-    print_color(f"[scl] Command executed by {user}@{hostname} at {start_time}", "blue", bold=True)
+    print_color(f"[scl] Command executed by {metadata.user}@{metadata.hostname} at {start_time}", "blue", bold=True)
     print_color(f"[scl] Command: {command}", "blue", bold=True)
 
 
-def print_footer(metadata: dict) -> None:
-    end_time = metadata["end_time"]
-    status_code = metadata["status_code"]
-    error_message = metadata["error_message"]
+def print_footer(metadata: Metadata) -> None:
+    end_time = metadata.end_time_utc.strftime(PRETT_TIME_FORMAT)
 
-    if status_code == -1:
+    if metadata.status_code == -1:
         print_color(f"[scl] Exited at {end_time} because of internal error", "red", bold=True)
-        print_color(f"[scl] Error message: {error_message}", "red", bold=True)
+        print_color(f"[scl] Error message: {metadata.error_message}", "red", bold=True)
     else:
-        color = "green" if status_code == 0 else "red"
-        print_color(f"[scl] Exited at {end_time} with code {status_code}", color, bold=True)
+        color = "green" if metadata.status_code == 0 else "red"
+        print_color(f"[scl] Exited at {end_time} with code {metadata.status_code}", color, bold=True)
 
 
 def remove_extension(path: str) -> str:
