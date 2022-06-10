@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-import argparse
 import os
-import sys
 # import the code from this package
 from shell_command_logger.replay import get_command_file_list, select_formatted, format_filename, format_command_builder, remove_extension, replay_command
 from shell_command_logger.config import load_config, sanitize_config, SclConfig
@@ -55,20 +52,3 @@ def subcommand_main(args) -> int:
         return replay_command(path, scl_config, only_show_original_output=args.quiet, skip_replay=args.skip)
     else:
         return 1
-
-
-def _main():
-    # Parse arguments
-    ap = argparse.ArgumentParser(**ARG_PARSER_OPTIONS)
-    populate_agrument_parser(ap)
-    args = ap.parse_args()
-
-    # Run the main function
-    exit_code = subcommand_main(args)
-
-    # And exit
-    sys.exit(exit_code)
-
-if __name__ == "__main__":
-    _main()
-

@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-import argparse
 import os
-import sys
 # import the code from this package
 from shell_command_logger import print_color
 from shell_command_logger.config import load_config, sanitize_config, SclConfig, config_to_parser, save_parser_as_config, parser_to_text, DEFAULT_CONFIG, CONFIG_FILE, _KEY_SECTION
@@ -59,20 +56,3 @@ def subcommand_main(args) -> int:
         print_color(f"Error validating config: {ex}", "red", bold=True)
         return 1
     # By default return 0 (success)
-
-
-def _main():
-    # Parse arguments
-    ap = argparse.ArgumentParser(**ARG_PARSER_OPTIONS)
-    populate_agrument_parser(ap)
-    args = ap.parse_args()
-
-    # Run the main function
-    exit_code = subcommand_main(args)
-
-    # And exit
-    sys.exit(exit_code)
-
-if __name__ == "__main__":
-    _main()
-

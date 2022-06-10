@@ -1,11 +1,8 @@
-#!/usr/bin/env python3
-import argparse
 import glob
 import json
 import os
 import shlex
 import subprocess
-import sys
 import traceback
 from typing import Optional, Callable
 # local

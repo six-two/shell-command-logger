@@ -1,9 +1,6 @@
-#!/usr/bin/env python3
-import argparse
 from datetime import datetime
 import os
 import subprocess
-import sys
 from typing import Any, Callable
 # import the code from this package
 from shell_command_logger.search import get_all_searchable_commands, SearchableCommand, Metadata, is_running_during_timeframe, get_command_output
@@ -195,20 +192,3 @@ def filter_by_metadata(entries: list[SearchableCommand], value: Any, exclude_val
         return [x for x in entries if not is_match(x.metadata, exclude_value)]
     else:
         return entries
-
-
-def _main():
-    # Parse arguments
-    ap = argparse.ArgumentParser(**ARG_PARSER_OPTIONS)
-    populate_agrument_parser(ap)
-    args = ap.parse_args()
-
-    # Run the main function
-    exit_code = subcommand_main(args)
-
-    # And exit
-    sys.exit(exit_code)
-
-if __name__ == "__main__":
-    _main()
-
