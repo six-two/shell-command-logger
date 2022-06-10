@@ -17,33 +17,49 @@ ARG_PARSER_OPTIONS = {
     "help": "search logs",
 }
 
+def create_only_or_exclude_filter(ap, short_flag: str, long_flag: str, description: str, **kwargs) -> None:
+    """
+    An helper method to reduce redundant code and thus reduce copy paste errors
+    """
+    if len(short_flag) != 1:
+        raise Exception("short_flag needs to be a single character")
+    
+    # The only X and the exclude X options are mutually exclusive
+    mutex = ap.add_mutually_exclusive_group()
+    # The only show X flag
+    mutex.add_argument(
+        f"-{short_flag.lower()}",
+        f"--{long_flag}",
+        nargs="+",
+        help=f"only show commands {description}",
+        **kwargs,
+    )
+    # The exclude X flag
+    mutex.add_argument(
+        f"-{short_flag.upper()}",
+        f"--exclude-{long_flag}",
+        nargs="+",
+        help=f"exclude commands {description}",
+        **kwargs,
+    )
+
+
 def populate_agrument_parser(ap) -> None:
     """
     Populates an argparse.ArgumentParser or an subcommand argument parser
     """
-    mutex_status = ap.add_mutually_exclusive_group()
-    mutex_status.add_argument("-s", "--status-codes", nargs="+", type=int, help="only show results with one of the given status codes. Programs terminated by internal errors have status code -1")
-    mutex_status.add_argument("-S", "--exclude-status-codes", nargs="+", type=int, help="exclude results with one of the given status codes. Programs terminated by internal errors have status code -1")
-
-    mutex_user = ap.add_mutually_exclusive_group()
-    mutex_user.add_argument("-u", "--users", nargs="+", help="only show commands run by one of the given users")
-    mutex_user.add_argument("-U", "--exclude-users", nargs="+", help="exclude commands run by any of the given users")
+    create_only_or_exclude_filter(ap, "s", "status-codes", "with one of the given status codes. Programs terminated by internal errors have status code -1", type=int)
+    create_only_or_exclude_filter(ap, "u", "users", "run by one of the given users")
 
     mutex_hostname = ap.add_mutually_exclusive_group()
+    # -h is already taken by --help
     mutex_hostname.add_argument("--hosts", nargs="+", help="only show commands run on one of the given hosts")
     mutex_hostname.add_argument("-H", "--exclude-hosts", nargs="+", help="exclude commands executed on one of the given hosts")
 
-    mutex_error = ap.add_mutually_exclusive_group()
-    mutex_error.add_argument("-e", "--errors", nargs="*", help="only show commands that contain one of the given texts in their error message. No argument will match any command with errors")
-    mutex_error.add_argument("-E", "--exclude-errors", nargs="*", help="exclude commands that contain one of the given texts in their error message. No argument will match any command with errors")
-
-    mutex_command = ap.add_mutually_exclusive_group()
-    mutex_command.add_argument("-c", "--commands", nargs="+", help="only show commands that contain at least one of the given strings in one of its arguments")
-    mutex_command.add_argument("-C", "--exclude-commands", nargs="+", help="exclude commands that contain the any of the given strings in one of its arguments")
-
-    mutex_time = ap.add_mutually_exclusive_group()
-    mutex_time.add_argument("-d", "--days", nargs="+", help="show commands that were running on one of the given days (in UTC)")
-    mutex_time.add_argument("-D", "--exclude-days", nargs="+", help="exclude commands that were running on one of the given days (in UTC)")
+    create_only_or_exclude_filter(ap, "e", "errors", "that contain one of the given texts in their error message. No argument will match any command with errors")
+    create_only_or_exclude_filter(ap, "p", "program", "that match one of the given program names")
+    create_only_or_exclude_filter(ap, "a", "arguments", "that contain at least one of the given strings in one of its arguments")
+    create_only_or_exclude_filter(ap, "d", "days", "that were running on one of the given days (in UTC)")
 
     ap.add_argument("-g", "--grep-output", metavar=("PATTERN_AND_FLAGS"), help="only show commands, if `echo <COMMAND_OUTPUT> | grep <PATTERN_AND_FLAGS>` returns the status code 0. Generally this means, that matches were found")
 
@@ -94,15 +110,21 @@ def subcommand_main(args) -> int:
             return False
     search_results = filter_by_metadata(search_results, args.errors, args.exclude_errors, is_match_error)
 
-    # Filter by command
+    # Filter by program
+    def is_match_program(metadata: Metadata, value_list: list[str]) -> bool:
+        program_name = os.path.basename(metadata.command[0])
+        return program_name in value_list
+    search_results = filter_by_metadata(search_results, args.program, args.exclude_program, is_match_program)
+
+    # Filter by command arguments
     def is_match_command(metadata: Metadata, value_list: list[str]) -> bool:
         for value in value_list:
-            for arg in metadata.command:
+            for arg in metadata.command[1:]:
                 # Test if ant value is a substring of any argument
                 if value in arg:
                     return True
         return False
-    search_results = filter_by_metadata(search_results, args.commands, args.exclude_commands, is_match_command)
+    search_results = filter_by_metadata(search_results, args.arguments, args.exclude_arguments, is_match_command)
 
     if args.days or args.exclude_days:
         # Only parse the dates once, this makes it necessary to first parse the dates and then define a function that uses the results
