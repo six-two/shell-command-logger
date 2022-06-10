@@ -2,12 +2,14 @@
 import argparse
 from datetime import datetime
 import os
+import subprocess
 import sys
 from typing import Any, Callable
 # import the code from this package
-from shell_command_logger.search import get_all_searchable_commands, SearchableCommand, Metadata, is_running_during_timeframe
+from shell_command_logger.search import get_all_searchable_commands, SearchableCommand, Metadata, is_running_during_timeframe, get_command_output
 from shell_command_logger.config import load_config, sanitize_config
 from shell_command_logger.backports import parse_datetime_string, round_up_date
+from shell_command_logger.replay import remove_extension
 
 SUBCOMMAND_NAMES = ["s", "search"]
 ARG_PARSER_OPTIONS = {
@@ -42,6 +44,9 @@ def populate_agrument_parser(ap) -> None:
     mutex_time = ap.add_mutually_exclusive_group()
     mutex_time.add_argument("-d", "--days", nargs="+", help="show commands that were running on one of the given days (in UTC)")
     mutex_time.add_argument("-D", "--exclude-days", nargs="+", help="exclude commands that were running on one of the given days (in UTC)")
+
+    ap.add_argument("-g", "--grep-output", metavar=("PATTERN_AND_FLAGS"), help="only show commands, if `echo <COMMAND_OUTPUT> | grep <PATTERN_AND_FLAGS>` returns the status code 0. Generally this means, that matches were found")
+    # TODO:
 
     # TODO: start/end x before/after
     # TODO: runtime longer/shorter than
@@ -103,6 +108,9 @@ def subcommand_main(args) -> int:
         search_results = filter_by_metadata(search_results, args.days, args.exclude_days, is_match_day)
 
 
+    if args.grep_output:
+        search_results = filter_by_grep(search_results, args.grep_output)
+
     for result in search_results:
         print(result.file_path)
 
@@ -110,9 +118,25 @@ def subcommand_main(args) -> int:
     return 0
 
 
+def filter_by_grep(entries: list[SearchableCommand], arguments_and_pattern: str) -> list[SearchableCommand]:
+    grep_command = f"grep {arguments_and_pattern}"
+    matches = []
+    for entry in entries:
+        log_file_name = remove_extension(entry.file_path) + ".log" # Access the .log file which contains the output
+        command_output = get_command_output(log_file_name)
+
+        # pipe the command output into grep
+        result = subprocess.run(grep_command, shell=True, input=command_output, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL, timeout=2)
+        # Accept result if grep returned with code 0 (results found)
+        if result.returncode == 0:
+            matches.append(entry)
+    
+    return matches
+
+
 class DateChecker:
     def __init__(self, date_list: list[str]) -> None:
-        self.boundaries: tuple[datetime, datetime] = []
+        self.boundaries: list[tuple[datetime, datetime]] = []
         for date_string in date_list:
             parsed = parse_datetime_string(date_string)
 

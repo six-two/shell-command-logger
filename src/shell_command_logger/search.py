@@ -119,3 +119,21 @@ def is_running_during_timeframe(metadata: Metadata, start: datetime, end: dateti
         raise Exception("Bug: should not be reached")
 
 
+def get_command_output(log_file_path: str) -> bytes:
+    """
+    Returns only the command output from a log file. This assumes, that the file uses the normal script format.
+    If the advanced mode is used, then scriptreplay will need to be used.
+    """
+    with open(log_file_path, "rb") as f:
+        file_bytes = f.read()
+
+    if file_bytes.startswith(b"Script started on"):
+        first_line_end = file_bytes.index(b"\n") + 1
+
+        # A heuristic for checking, if the last line is "Script done on"
+        last_line_start = file_bytes.rindex(b"\nScript done on", -100)
+
+        # Remove the "Script started" / "Script ended" lines
+        return file_bytes[first_line_end:last_line_start]
+    else:
+        raise Exception("Unexpected file format. Expected file to start with 'Script started on ...'")
