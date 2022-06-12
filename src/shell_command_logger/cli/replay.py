@@ -1,7 +1,6 @@
-import os
 # import the code from this package
 from shell_command_logger.replay import get_command_file_list, select_formatted, format_filename, format_command_builder, remove_extension, replay_command
-from shell_command_logger.config import load_config, sanitize_config, SclConfig
+from shell_command_logger.config import load_config, sanitize_config
 
 
 SUBCOMMAND_NAMES = ["r", "replay"]

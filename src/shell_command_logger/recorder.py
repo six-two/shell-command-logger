@@ -3,11 +3,9 @@ import json
 import os
 import subprocess
 import shlex
-import sys
 import time
 import secrets
 # local
-from . import get_version_string
 from .config import SclConfig
 
 # This also works when the file is a symlink (gets the original dir)

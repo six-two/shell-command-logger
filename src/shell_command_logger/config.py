@@ -1,7 +1,6 @@
 from configparser import ConfigParser
 import io
 import os
-import traceback
 from typing import NamedTuple
 # local
 from . import get_name_and_version, print_error, DoNotPrintMeException, print_color
@@ -119,7 +118,7 @@ def parse_config_file(path: str) -> SclConfig:
 
     try:
         section_config = config[_KEY_SECTION]
-    except KeyError as e:
+    except KeyError:
         print_error(f"Configuration file is missing section '{_KEY_SECTION}'. You can create a valid config file with `scl config --defaults`")
         raise DoNotPrintMeException()
 

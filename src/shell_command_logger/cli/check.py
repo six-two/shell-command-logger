@@ -85,5 +85,5 @@ class DependencyChecker:
                 self._handle_missing(required, reason, f"exited with error (code {result.returncode})")
         except Exception as ex:
             self._handle_missing(required, reason, f"caused an error: {ex}")
-        print_color(f" -> You set a custom command with: scl config --set fzf-command 'put your command here'", "yellow")
+        print_color(" -> You set a custom command with: scl config --set fzf-command 'put your command here'", "yellow")
 

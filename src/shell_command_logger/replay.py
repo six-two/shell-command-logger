@@ -3,11 +3,10 @@ import json
 import os
 import shlex
 import subprocess
-import traceback
 from typing import Optional, Callable
 # local
-from . import get_version_string, print_error, backports, print_color
-from .config import load_config, sanitize_config, SclConfig, _KEY_FZF_EXECUTABLE
+from . import print_error, print_color
+from .config import SclConfig, _KEY_FZF_EXECUTABLE
 from .search import parse_metadata, Metadata
 
 EXTENSIONS = [".json", ".log", ".time"]

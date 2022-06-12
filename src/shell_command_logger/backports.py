@@ -1,7 +1,4 @@
 from datetime import datetime, timezone
-import glob
-import os
-import sys
 # local
 from shell_command_logger import print_color
 

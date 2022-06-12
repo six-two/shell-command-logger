@@ -1,5 +1,4 @@
 import argparse
-import os
 import sys
 from typing import Callable
 # import the code from this package

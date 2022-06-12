@@ -1,7 +1,6 @@
-import os
 # import the code from this package
 from shell_command_logger import print_color
-from shell_command_logger.config import load_config, sanitize_config, SclConfig, config_to_parser, save_parser_as_config, parser_to_text, DEFAULT_CONFIG, CONFIG_FILE, _KEY_SECTION
+from shell_command_logger.config import load_config, sanitize_config, config_to_parser, save_parser_as_config, parser_to_text, DEFAULT_CONFIG, CONFIG_FILE, _KEY_SECTION
 
 
 SUBCOMMAND_NAMES = ["c", "config"]

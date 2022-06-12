@@ -3,7 +3,7 @@ import os
 from typing import Optional
 # import the code from this package
 from shell_command_logger.recorder import get_command_path, get_timestamp_filename, record_command
-from shell_command_logger.config import load_config, sanitize_config, SclConfig
+from shell_command_logger.config import load_config, sanitize_config
 
 
 SUBCOMMAND_NAMES = ["l", "log"]
