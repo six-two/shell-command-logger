@@ -29,6 +29,7 @@ def subcommand_main(args) -> int:
     checker.check_python_package("termcolor", "termcolor", False, "colored output")
     checker.check_python_package("python-dateutil", "dateutil", False, "better date parsing")
 
+    # Load the config as late as possible, since it may cause an exception
     scl_config = sanitize_config(load_config())
     checker.check_interactive_selection(scl_config.fzf_executable, False, "selecting which command to replay")
 
