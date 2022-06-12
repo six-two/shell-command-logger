@@ -6,12 +6,7 @@ import shell_command_logger
 from shell_command_logger import print_color
 from shell_command_logger.backports import TimeParseException
 from shell_command_logger.config import InvalidConfigException
-import shell_command_logger.cli.alias
-import shell_command_logger.cli.check
-import shell_command_logger.cli.config
-import shell_command_logger.cli.log
-import shell_command_logger.cli.replay
-import shell_command_logger.cli.search
+from shell_command_logger.cli import alias, check, config, log, replay, search
 
 class SubcommandHandlerException(Exception):
     pass
@@ -63,12 +58,9 @@ def main() -> None:
     )
     ap.add_argument("-V", "--version", action="version", version=shell_command_logger.get_version_string())
     handler = SubcommandHandler(ap)
-    handler.register_module(shell_command_logger.cli.alias)
-    handler.register_module(shell_command_logger.cli.check)
-    handler.register_module(shell_command_logger.cli.config)
-    handler.register_module(shell_command_logger.cli.log)
-    handler.register_module(shell_command_logger.cli.replay)
-    handler.register_module(shell_command_logger.cli.search)
+
+    for module in [alias, check, config, log, replay, search]:
+        handler.register_module(module)
 
     # Run the selected submodule
     args = ap.parse_args()
