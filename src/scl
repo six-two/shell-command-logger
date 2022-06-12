@@ -10,6 +10,7 @@ from shell_command_logger.backports import TimeParseException
 from shell_command_logger.config import InvalidConfigException
 from shell_command_logger.alias import print_text_to_source, load_alias_file, save_alias_file, CONFIG_FILE
 import shell_command_logger.cli.alias
+import shell_command_logger.cli.check
 import shell_command_logger.cli.config
 import shell_command_logger.cli.log
 import shell_command_logger.cli.replay
@@ -45,7 +46,7 @@ class SubcommandHandler:
 
         fn_main = self.main_function_map.get(subcommand_name)
         if fn_main:
-            fn_main(args)
+            return fn_main(args)
         else:
             raise SubcommandHandlerException(f"No subcommand with name '{subcommand_name}' registered")
 
@@ -66,6 +67,7 @@ def main():
     ap.add_argument("-V", "--version", action="version", version=shell_command_logger.get_version_string())
     handler = SubcommandHandler(ap)
     handler.register_module(shell_command_logger.cli.alias)
+    handler.register_module(shell_command_logger.cli.check)
     handler.register_module(shell_command_logger.cli.config)
     handler.register_module(shell_command_logger.cli.log)
     handler.register_module(shell_command_logger.cli.replay)

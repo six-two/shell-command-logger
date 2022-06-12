@@ -49,7 +49,13 @@ DEFAULT_CONFIG = SclConfig(
 
 def sanitize_config(config: SclConfig) -> SclConfig:
     output_dir = os.path.expanduser(config.output_dir)
-    os.makedirs(output_dir, exist_ok=True)
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+    except Exception:
+        raise InvalidConfigException(f"Could not create data directory: '{output_dir}'")
+
+    if not os.access(output_dir, os.W_OK):
+        raise InvalidConfigException(f"Missing write permission for data directory: '{output_dir}'")
 
     if not config.fzf_executable.strip():
         raise InvalidConfigException(f"Setting '{_KEY_FZF_EXECUTABLE}' can not be empty")

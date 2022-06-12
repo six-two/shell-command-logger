@@ -1,19 +1,22 @@
 import traceback
 from typing import Optional, Callable
 # pip dependency
-_cprint: Optional[Callable] = None
+_colored: Optional[Callable] = None
 try:
-    from termcolor import cprint as _cprint
+    from termcolor import colored as _colored
 except ImportError:
     pass
 
-def print_color(message, color, bold: bool = False) -> None:
-    if _cprint:
+def print_color(message: str, font_color: str, bold: bool = False, **kwargs) -> None:
+    print(color(message, font_color, bold), **kwargs)
+
+def color(message: str, font_color: str, bold: bool = False) -> str:
+    if _colored:
         attrs = ["bold"] if bold else None
-        _cprint(message, color, attrs=attrs)
+        return _colored(message, font_color, attrs=attrs)
     else:
         # Fallback: When termcolor is not installed, just print everything without color
-        print(message)
+        return message
 
 # @SYNC: /setup.cfg -> [metadata] -> version
 __version__ = "0.4.0"
