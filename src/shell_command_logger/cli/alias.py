@@ -1,6 +1,7 @@
 import os
 # import the code from this package
-from shell_command_logger.alias import print_text_to_source, load_alias_file, save_alias_file, CONFIG_FILE
+from shell_command_logger import print_color
+from shell_command_logger.alias import ALIAS_MANAGER, print_text_to_source
 
 SUBCOMMAND_NAMES = ["a", "alias"]
 ARG_PARSER_OPTIONS = {
@@ -17,7 +18,7 @@ def populate_agrument_parser(ap) -> None:
     mutex.add_argument("-s", "--set", nargs="*", help="overwrites the alias list with the given values. This deletes all old entries")
     mutex.add_argument("-a", "--add", nargs="+", help="add the given programs to the alias list")
     mutex.add_argument("-d", "--delete", nargs="+", help="delete the given programs from the alias list")
-    mutex.add_argument("--reset", action="store_true", help="reset the alias list back to the default value")
+    mutex.add_argument("--reset", "--defaults", action="store_true", help="reset the alias list back to the default value")
 
 
 def subcommand_main(args) -> int:
@@ -29,19 +30,21 @@ def subcommand_main(args) -> int:
         shell = args.print
         print_text_to_source(shell)
     elif args.set is not None:
-        save_alias_file(args.set)
+        with ALIAS_MANAGER as programs_wrapper:
+            programs_wrapper.list = args.set
     elif args.add:
-        programs = load_alias_file()
-        programs += args.add
-        save_alias_file(programs)
+        with ALIAS_MANAGER as programs_wrapper:
+            programs_wrapper.list += args.add
     elif args.delete:
-        programs = load_alias_file()
-        programs = [x for x in programs if x not in args.delete]
-        save_alias_file(programs)
+        with ALIAS_MANAGER as programs_wrapper:
+            programs_wrapper.list = [x for x in programs_wrapper.list if x not in args.delete]
     elif args.reset:
-        os.remove(CONFIG_FILE)
+        try:
+            os.remove(ALIAS_MANAGER.state_file)
+        except Exception:
+            print_color(f"Failed to remove current list file: '{ALIAS_MANAGER.state_file}'", "red")
     else:
-        for program in load_alias_file():
+        for program in ALIAS_MANAGER.get_read_only_list():
             print(program)
 
     # By default return 0 (success)

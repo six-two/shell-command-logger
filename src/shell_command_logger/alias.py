@@ -1,9 +1,11 @@
 import os
 import shutil
 import sys
+# local files
+from shell_command_logger.list_manager import ListManager
 
-CONFIG_FILE = os.path.expanduser("~/.config/shell-command-logger/aliases.txt")
-DEFAULT_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "default_aliases.txt")
+_CONFIG_FILE = os.path.expanduser("~/.config/shell-command-logger/aliases.txt")
+_DEFAULT_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "default_aliases.txt")
 
 
 def check_program_name(program: str) -> None:
@@ -20,30 +22,12 @@ def shell_alias(shell: str, program: str) -> str:
         raise ValueError(f"Unknown shell '{shell}'. Supported are bash, fish and zsh")
 
 
-def load_alias_file() -> list[str]:
-    if not os.path.exists(CONFIG_FILE):
-        # Copy my defaults file over
-        os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
-        shutil.copyfile(DEFAULT_CONFIG_FILE, CONFIG_FILE)
-
-    with open(CONFIG_FILE, "r") as f:
-        lines = f.read().split("\n")
-    # Remove leading/trailing whitespace and empty lines
-    return [x.strip() for x in lines if x.strip()]
-
-
-def save_alias_file(aliases: list[str]) -> None:
-    # remove duplicates
-    aliases = list(set(aliases))
-    lines = [f"{x}\n" for x in sorted(aliases)]
-
-    os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
-    with open(CONFIG_FILE, "w") as f:
-        f.write("".join(lines))
-
-
 def print_text_to_source(shell: str) -> None:
-    for program in load_alias_file():
+    """
+    Return the text that contains the alias commands for the given shell.
+    The result should be passed to `source`.
+    """
+    for program in ALIAS_MANAGER.get_read_only_list():
         try:
             check_program_name(program)
             print(shell_alias(shell, program))
@@ -51,3 +35,6 @@ def print_text_to_source(shell: str) -> None:
             # Print to stderr so that this will not be sourced but instea shown to the user
             print(f"Error creating alias for '{program}':", ex, file=sys.stderr)
 
+
+
+ALIAS_MANAGER = ListManager(_CONFIG_FILE, _DEFAULT_CONFIG_FILE) 

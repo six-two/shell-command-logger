@@ -7,7 +7,6 @@ import shell_command_logger
 from shell_command_logger import print_color
 from shell_command_logger.backports import TimeParseException
 from shell_command_logger.config import InvalidConfigException
-from shell_command_logger.alias import print_text_to_source, load_alias_file, save_alias_file, CONFIG_FILE
 import shell_command_logger.cli.alias
 import shell_command_logger.cli.check
 import shell_command_logger.cli.config
