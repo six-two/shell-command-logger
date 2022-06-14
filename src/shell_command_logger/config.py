@@ -20,6 +20,8 @@ class SclConfig(NamedTuple):
     replay_speed: float
     # Run a command to let the user choose a value (for example 'fzf', 'dmenu -l 10', etc). Must read input from stdin and output the selection to stdout
     fzf_executable: str
+    # The folder where the symlinks should be stored. Should be part of PATH (first/high priority entry) to function
+    symlink_dir: str
 
 
 CONFIG_FILE = os.path.expanduser("~/.config/shell-command-logger/config")
@@ -33,6 +35,7 @@ _KEY_REPLAY_SPEED = "replay-speed"
 _KEY_OUTPUT_LIMIT = "script-output-limit"
 _KEY_FILE_NAME_RANDOM_BYTES = "file-name-random-bytes"
 _KEY_FZF_EXECUTABLE = "fzf-command"
+_KEY_SYMLINK_DIR = "symlink-directory"
 
 
 DEFAULT_CONFIG = SclConfig(
@@ -43,18 +46,16 @@ DEFAULT_CONFIG = SclConfig(
     script_output_limit="1g",
     file_name_random_bytes=2,
     fzf_executable="fzf",
+    symlink_dir="~/.local/share/shell-command-logger/bin"
 )
 
 
 def sanitize_config(config: SclConfig) -> SclConfig:
     output_dir = os.path.expanduser(config.output_dir)
-    try:
-        os.makedirs(output_dir, exist_ok=True)
-    except Exception:
-        raise InvalidConfigException(f"Could not create data directory: '{output_dir}'")
+    symlink_dir = os.path.expanduser(config.symlink_dir)
 
-    if not os.access(output_dir, os.W_OK):
-        raise InvalidConfigException(f"Missing write permission for data directory: '{output_dir}'")
+    ensure_directory_exists(output_dir)
+    ensure_directory_exists(symlink_dir)
 
     if not config.fzf_executable.strip():
         raise InvalidConfigException(f"Setting '{_KEY_FZF_EXECUTABLE}' can not be empty")
@@ -68,7 +69,20 @@ def sanitize_config(config: SclConfig) -> SclConfig:
     if config.file_name_random_bytes < 1 or config.file_name_random_bytes > 100:
         raise InvalidConfigException(f"Config setting '{_KEY_FILE_NAME_RANDOM_BYTES}' needs to be between 1 and 100")
 
-    return config._replace(output_dir=output_dir)
+    return config._replace(output_dir=output_dir, symlink_dir=symlink_dir)
+
+
+def ensure_directory_exists(path: str) -> None:
+    try:
+        os.makedirs(path, exist_ok=True)
+    except Exception:
+        raise InvalidConfigException(f"Could not create directory: '{path}'")
+
+    if not os.access(path, os.R_OK):
+        raise InvalidConfigException(f"Missing read permission for directory: '{path}'")
+
+    if not os.access(path, os.W_OK):
+        raise InvalidConfigException(f"Missing write permission for directory: '{path}'")
 
 
 def create_template_file(output_dir: str) -> None:
@@ -130,6 +144,7 @@ def parse_config_file(path: str) -> SclConfig:
     script_output_limit = section_config.get(_KEY_OUTPUT_LIMIT, DEFAULT_CONFIG.script_output_limit)
     file_name_random_bytes = section_config.getint(_KEY_FILE_NAME_RANDOM_BYTES, DEFAULT_CONFIG.file_name_random_bytes)
     fzf_executable = section_config.get(_KEY_FZF_EXECUTABLE, DEFAULT_CONFIG.fzf_executable)
+    symlink_dir = section_config.get(_KEY_SYMLINK_DIR, DEFAULT_CONFIG.symlink_dir)
 
     return SclConfig(
         output_dir=output_dir,
@@ -139,6 +154,7 @@ def parse_config_file(path: str) -> SclConfig:
         script_output_limit=script_output_limit,
         file_name_random_bytes=file_name_random_bytes,
         fzf_executable=fzf_executable,
+        symlink_dir=symlink_dir,
     )
 
 
@@ -151,6 +167,7 @@ def config_to_parser(scl_config: SclConfig) -> ConfigParser:
         _KEY_OUTPUT_LIMIT: scl_config.script_output_limit,
         _KEY_FILE_NAME_RANDOM_BYTES: scl_config.file_name_random_bytes,
         _KEY_FZF_EXECUTABLE: scl_config.fzf_executable,
+        _KEY_SYMLINK_DIR: scl_config.symlink_dir,
     }
 
     parser = ConfigParser()

@@ -4,6 +4,7 @@ from typing import Optional
 # import the code from this package
 from shell_command_logger.recorder import get_command_path, get_timestamp_filename, record_command
 from shell_command_logger.config import load_config, sanitize_config
+from shell_command_logger.symlink import get_python_main_file
 
 
 SUBCOMMAND_NAMES = ["l", "log"]
@@ -12,19 +13,13 @@ ARG_PARSER_OPTIONS = {
     "help": "record a command",
 }
 
-__SCRIPT_FILE = None
-
-def set_script_file(calling_scripts__file__value: str) -> None:
-    global __SCRIPT_FILE
-    __SCRIPT_FILE = calling_scripts__file__value
-
 
 def get_name_when_called_by_symlink() -> Optional[str]:
     """
     When this script was called by a symlink, return the symlink's file name (unless it is exactly the name of this program).
     Otherwise return None.
     """
-    calling_scripts__file__value = get_script_file()
+    calling_scripts__file__value = get_python_main_file()
     # The name the file was called as (for example `rec` if `/tmp/rec` is a symlink to this script)
     used_binary_name = os.path.basename(calling_scripts__file__value)
     # The original scripts file name (for example simple_recorder.py if `/tmp/rec` is a symlink to this script)
@@ -36,12 +31,6 @@ def get_name_when_called_by_symlink() -> Optional[str]:
     else:
         # Return the name this script was called by
         return used_binary_name
-
-
-def get_script_file() -> str:
-    if not __SCRIPT_FILE:
-        raise Exception("script file is not set")
-    return __SCRIPT_FILE
 
 
 def populate_agrument_parser(ap) -> None:
@@ -73,7 +62,7 @@ def _record_command(command: list[str]):
     scl_config = sanitize_config(scl_config)
 
     # make sure, that we do not call our own script recursively
-    command[0] = get_command_path(command[0], get_script_file())
+    command[0] = get_command_path(command[0], get_python_main_file())
 
     command_name = os.path.basename(command[0])
     output_dir = os.path.join(scl_config.output_dir, command_name)

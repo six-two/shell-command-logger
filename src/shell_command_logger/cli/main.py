@@ -7,6 +7,7 @@ from shell_command_logger import print_color
 from shell_command_logger.backports import TimeParseException
 from shell_command_logger.config import InvalidConfigException
 from shell_command_logger.cli import alias, check, config, log, replay, search
+from shell_command_logger.symlink import set_python_main_file
 
 class SubcommandHandlerException(Exception):
     pass
@@ -43,9 +44,9 @@ class SubcommandHandler:
             raise SubcommandHandlerException(f"No subcommand with name '{subcommand_name}' registered")
 
 
-def main() -> None:
+def main(main_python_file: str) -> None:
     # Register the calling binaries path
-    shell_command_logger.cli.log.set_script_file(__file__)
+    set_python_main_file(main_python_file)
     if symlink_name := shell_command_logger.cli.log.get_name_when_called_by_symlink():
         exit_code = shell_command_logger.cli.log.record_command_when_called_by_symlink(symlink_name, sys.argv[1:])
         sys.exit(exit_code)
@@ -76,7 +77,4 @@ def main() -> None:
         exit_code = 1
   
     sys.exit(exit_code)
-
-if __name__ == "__main__":
-    main()
 
