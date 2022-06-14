@@ -1,8 +1,7 @@
 import os
 import shutil
 from typing import Optional
-# local files
-from shell_command_logger.debug import debug_function
+import logging
 
 _PYTHON_MAIN_FILE: Optional[str] = None
 
@@ -31,7 +30,6 @@ def set_python_main_file(new_value: str, allow_overwrite: bool = False) -> None:
         raise Exception("'new_value' is empty")
 
 
-@debug_function
 def is_same_as_main_file(other_file: str) -> bool:
     main_file = get_python_main_file()
     return os.path.samefile(main_file, other_file)
@@ -57,4 +55,22 @@ def get_binary_name_or_path() -> str:
     return "scl" if is_scl_binary_same_as_python_main_file() else get_python_main_file()
 
 
+def create_symlink_to_main_file(path: str) -> None:
+    # Check if the target file already exists
+    if os.path.exists(path):
+        # Check if it is a symlink to the main file
+        if is_same_as_main_file(path):
+            # Everything is ok, no need to perform do anything :)
+            logging.debug("Symlink %s is already pointing to self", path)
+            return
+        else:
+            # A symlink, but not to this file
+            # Delete the old file, then create the symlink later
+            os.remove(path)
+            logging.debug("Removed incorrect symlink %s", path)
+
+    # At this point the given file should not exist
+    # So we can simply create the symlink
+    os.symlink(get_python_main_file(), path)
+    logging.debug("Created symlink %s", path)
 

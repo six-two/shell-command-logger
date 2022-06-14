@@ -6,7 +6,7 @@ import shell_command_logger
 from shell_command_logger import print_color
 from shell_command_logger.backports import TimeParseException
 from shell_command_logger.config import InvalidConfigException
-from shell_command_logger.cli import alias, check, config, log, replay, search
+from shell_command_logger.cli import alias, check, config, log, replay, search, symlink
 from shell_command_logger.main_file import set_python_main_file
 from shell_command_logger.debug import init_debugging
 
@@ -62,7 +62,7 @@ def main(main_python_file: str) -> None:
     ap.add_argument("-d", "--debug", action="store_true", help="print debugging information")
     handler = SubcommandHandler(ap)
 
-    for module in [alias, check, config, log, replay, search]:
+    for module in [alias, check, config, log, replay, search, symlink]:
         handler.register_module(module)
 
     # Run the selected submodule
