@@ -1,8 +1,10 @@
 import os
+import shlex
 import shutil
 import sys
 # local files
 from shell_command_logger.list_manager import ListManager
+from shell_command_logger.symlink import get_binary_name_or_path
 
 _CONFIG_FILE = os.path.expanduser("~/.config/shell-command-logger/aliases.txt")
 _DEFAULT_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "default_aliases.txt")
@@ -16,8 +18,11 @@ def check_program_name(program: str) -> None:
 
 
 def shell_alias(shell: str, program: str) -> str:
+    # This allows to use aliases, even if 'scl' is not in $PATH
+    scl = shlex.quote(get_binary_name_or_path())
+
     if shell in ["bash", "fish", "zsh"]:
-        return f"alias {program}='scl log {program}'"
+        return f"alias {program}=\"{scl} log {program}\""
     else:
         raise ValueError(f"Unknown shell '{shell}'. Supported are bash, fish and zsh")
 

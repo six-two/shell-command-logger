@@ -8,6 +8,7 @@ from shell_command_logger.backports import TimeParseException
 from shell_command_logger.config import InvalidConfigException
 from shell_command_logger.cli import alias, check, config, log, replay, search
 from shell_command_logger.symlink import set_python_main_file
+from shell_command_logger.debug import init_debugging
 
 class SubcommandHandlerException(Exception):
     pass
@@ -58,6 +59,7 @@ def main(main_python_file: str) -> None:
         epilog=f"Installed version: {shell_command_logger.get_version_string()}\nDocumentation: https://shell-command-logger.six-two.dev/"
     )
     ap.add_argument("-V", "--version", action="version", version=shell_command_logger.get_version_string())
+    ap.add_argument("-d", "--debug", action="store_true", help="print debugging information")
     handler = SubcommandHandler(ap)
 
     for module in [alias, check, config, log, replay, search]:
@@ -65,6 +67,10 @@ def main(main_python_file: str) -> None:
 
     # Run the selected submodule
     args = ap.parse_args()
+
+    if args.debug:
+        init_debugging(True)
+
     try:
         exit_code = handler.subcommand_main(args)
     except InvalidConfigException as ex:

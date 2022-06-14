@@ -1,5 +1,8 @@
 import os
+import shutil
 from typing import Optional
+# local files
+from shell_command_logger.debug import debug_function
 
 _PYTHON_MAIN_FILE: Optional[str] = None
 
@@ -28,6 +31,27 @@ def set_python_main_file(new_value: str, allow_overwrite: bool = False) -> None:
         raise Exception("'new_value' is empty")
 
 
+@debug_function
 def is_same_as_main_file(other_file: str) -> bool:
     main_file = get_python_main_file()
     return os.path.samefile(main_file, other_file)
+
+
+def is_scl_binary_same_as_python_main_file() -> bool:
+    """
+    Checks it the scl binary is the same file (or a symlink) to the main file
+    """
+    scl_path = shutil.which("scl")
+    if scl_path:
+        # Check if the binary is the same file
+        return is_same_as_main_file(scl_path)
+    else:
+        # scl is not in $PATH -> can not be the same
+        return False
+
+
+def get_binary_name_or_path() -> str:
+    """
+    If the scl binary is in path, return 'scl'. Otherwise return the full path to the main script.
+    """
+    return "scl" if is_scl_binary_same_as_python_main_file() else get_python_main_file()
