@@ -7,7 +7,7 @@ from shell_command_logger import print_color
 from shell_command_logger.backports import TimeParseException
 from shell_command_logger.config import InvalidConfigException
 from shell_command_logger.cli import alias, check, config, log, replay, search
-from shell_command_logger.symlink import set_python_main_file
+from shell_command_logger.main_file import set_python_main_file
 from shell_command_logger.debug import init_debugging
 
 class SubcommandHandlerException(Exception):

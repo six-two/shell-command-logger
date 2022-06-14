@@ -55,3 +55,6 @@ def get_binary_name_or_path() -> str:
     If the scl binary is in path, return 'scl'. Otherwise return the full path to the main script.
     """
     return "scl" if is_scl_binary_same_as_python_main_file() else get_python_main_file()
+
+
+

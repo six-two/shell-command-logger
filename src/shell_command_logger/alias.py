@@ -4,7 +4,7 @@ import shutil
 import sys
 # local files
 from shell_command_logger.list_manager import ListManager
-from shell_command_logger.symlink import get_binary_name_or_path
+from shell_command_logger.main_file import get_binary_name_or_path
 
 _CONFIG_FILE = os.path.expanduser("~/.config/shell-command-logger/aliases.txt")
 _DEFAULT_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "default_aliases.txt")

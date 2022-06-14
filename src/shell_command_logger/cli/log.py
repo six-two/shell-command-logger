@@ -4,7 +4,7 @@ from typing import Optional
 # import the code from this package
 from shell_command_logger.recorder import get_command_path, get_timestamp_filename, record_command
 from shell_command_logger.config import load_config, sanitize_config
-from shell_command_logger.symlink import get_python_main_file
+from shell_command_logger.main_file import get_python_main_file
 
 
 SUBCOMMAND_NAMES = ["l", "log"]
