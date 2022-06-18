@@ -2,10 +2,10 @@
 
 There are still some features missing:
 
-- Create `scl search` to search metadata and output
-    - Allow `scl search` to be piped into `scl replay` to narrow down the choices.
-    - Also allow storing search results in a file and let `scl replay` load it.
-- Add a subcommand for managing symlinks
+- Make modular logging backends
+  - Write backends for linux (`script`), macos (different version of `script`), Windows (idea: https://devblogs.microsoft.com/scripting/powertip-record-commands-and-output-from-powershell/)
+  - Optional: Create pure python backend that could be used as a fallback
+- Allow storing `scl search`'s results in a file and let `scl replay` load it.
 - Create proper documentation for users (mkdocs site?)
 - Add option to skip ignore `output-limit` for `scl log`
 - Add more scriptreplay flags (like --divisor, --maxdelay) to `scl replay`
