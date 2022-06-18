@@ -9,6 +9,8 @@ from shell_command_logger.config import InvalidConfigException
 from shell_command_logger.cli import alias, check, config, log, replay, search, symlink
 from shell_command_logger.main_file import set_python_main_file
 from shell_command_logger.debug import init_debugging
+# local files
+from ..backports import Dict
 
 class SubcommandHandlerException(Exception):
     pass
@@ -19,7 +21,7 @@ class SubcommandHandler:
         self.subcommand_variable_name = subcommand_variable_name
         self.ap_subparsers = self.ap.add_subparsers(metavar="SUBCOMMAND", required=subcommand_required, dest=subcommand_variable_name)
         # Maps from subcommand names to the coresponding main functions
-        self.main_function_map: dict[str, Callable] = {}
+        self.main_function_map: Dict[str, Callable] = {}
 
     def register_module(self, module) -> None:
         for name in module.SUBCOMMAND_NAMES:

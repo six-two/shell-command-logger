@@ -5,6 +5,7 @@ from typing import Optional
 from shell_command_logger.recorder import get_command_path, get_timestamp_filename, record_command
 from shell_command_logger.config import load_config, sanitize_config
 from shell_command_logger.main_file import get_python_main_file
+from ..backports import List
 
 
 SUBCOMMAND_NAMES = ["l", "log"]
@@ -53,11 +54,11 @@ def subcommand_main(args) -> int:
         return _record_command(command)
 
 
-def record_command_when_called_by_symlink(symlink_name: str, argv: list[str]) -> int:
+def record_command_when_called_by_symlink(symlink_name: str, argv: List[str]) -> int:
     return _record_command([symlink_name, *argv])
 
 
-def _record_command(command: list[str]):
+def _record_command(command: List[str]):
     scl_config = load_config()
     scl_config = sanitize_config(scl_config)
 

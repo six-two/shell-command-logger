@@ -8,6 +8,8 @@ from typing import Optional, Callable
 from . import print_error, print_color
 from .config import SclConfig, _KEY_FZF_EXECUTABLE
 from .search import parse_metadata, Metadata
+from .backports import List, Tuple
+
 
 EXTENSIONS = [".json", ".log", ".time"]
 PRETT_TIME_FORMAT = "%Y-%m-%d %H:%M:%S UTC"
@@ -70,7 +72,7 @@ def remove_extension(path: str) -> str:
     return path
 
 
-def get_command_file_list(scl_config: SclConfig) -> list[str]:
+def get_command_file_list(scl_config: SclConfig) -> List[str]:
     pattern = os.path.join(scl_config.output_dir, "**", "*.json")
     return glob.glob(pattern, recursive=True)
 
@@ -85,7 +87,7 @@ def format_command_builder(scl_config: SclConfig) -> Callable:
     return format_function
 
 
-def select_formatted(scl_config: SclConfig, format_function: Callable[[str], str], log_files: list[str]) -> Optional[str]:
+def select_formatted(scl_config: SclConfig, format_function: Callable[[str], str], log_files: List[str]) -> Optional[str]:
     if not log_files:
         print_color("No command log files found!", "red")
         return None
@@ -128,7 +130,7 @@ class CommandFormater:
         time = time.replace("Z", " ")
         return time
 
-    def get_statuscode_and_success(self) -> tuple[str, str]:
+    def get_statuscode_and_success(self) -> Tuple[str, str]:
         status_code = self.metadata.get("status_code")
         status_code = "N/A" if status_code == -1 else str(status_code)
         # checkmark if success else cross

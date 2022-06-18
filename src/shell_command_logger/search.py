@@ -7,10 +7,11 @@ import sys
 from typing import NamedTuple, Optional
 # local modules
 from shell_command_logger.config import SclConfig
+from .backports import List
 
 
 class Metadata(NamedTuple):
-    command: list[str]
+    command: List[str]
     user: str
     hostname: str
     start_time_utc: datetime
@@ -76,8 +77,8 @@ class SearchableCommand:
         self.metadata = parse_metadata(metadata_file)
 
 
-def get_all_searchable_commands(scl_config: SclConfig) -> list[SearchableCommand]:
-    results: list[SearchableCommand] = []
+def get_all_searchable_commands(scl_config: SclConfig) -> List[SearchableCommand]:
+    results: List[SearchableCommand] = []
     search_pattern = os.path.join(scl_config.output_dir, "**", "*.json")
 
     for file_path in glob.glob(search_pattern, recursive=True):

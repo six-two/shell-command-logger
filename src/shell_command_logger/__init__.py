@@ -39,7 +39,9 @@ def print_error(message, print_stacktrace: bool = False, raise_error: bool = Fal
         raise DoNotPrintMeException()
 
 
-def get_name_and_version() -> tuple[str, str]:
+# local files
+from shell_command_logger.backports import Tuple
+def get_name_and_version() -> Tuple[str, str]:
     # Use the pip name instead of the package name
     package_name = "shell-command-logger"
     package_version = __version__

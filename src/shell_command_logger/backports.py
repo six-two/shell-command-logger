@@ -1,9 +1,21 @@
 from datetime import datetime, timezone
+import sys
 # local
 from shell_command_logger import print_color
 
 
 _PRINTED_DATE_LIBRARY_MISSING_WARNING = False
+
+# Use the correct type hints depending on the python version
+PYTHON_VERSION = (sys.version_info.major, sys.version_info.minor)
+if PYTHON_VERSION >= (3, 9):
+    # Use the modern versions
+    Tuple = tuple
+    List = list
+    Dict = dict
+else:
+    # Use the deprecated versions, since using the modern versions would cause "TypeError: 'type' object is not subscriptable"
+    from typing import Tuple, List, Dict
 
 class TimeParseException(Exception):
     pass

@@ -1,6 +1,8 @@
 import os
 import shutil
 from typing import Optional
+# local files
+from shell_command_logger.backports import List
 
 
 class ListWrapper:
@@ -10,7 +12,7 @@ class ListWrapper:
     Using a native list would not work, unless the list is modified in-place,
     which makes programming way harder (and more error-prone)
     """
-    def __init__(self, initial_list: list[str]) -> None:
+    def __init__(self, initial_list: List[str]) -> None:
         self.list = initial_list
 
 
@@ -24,12 +26,12 @@ class ListManager:
         self.default_file = default_file
         # This stores the original list. Only if it is modified, the results will be written back to the file.
         # This assumes, that no one modified the list in the mean time, which is plausible if the object is only used for a short amount of time.
-        self.og_list: Optional[list[str]] = None
+        self.og_list: Optional[List[str]] = None
         # The object returned via __enter__. Will be used by __exit__ to check if the file should be modified
         self.list_wrapper: Optional[ListWrapper] = None
 
 
-    def get_read_only_list(self) -> list[str]:
+    def get_read_only_list(self) -> List[str]:
         """
         Loads the results from the file. Modifications to the returned list will not be reflected in the file.
         """

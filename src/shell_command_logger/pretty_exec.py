@@ -9,13 +9,24 @@ import subprocess
 import sys
 import traceback
 from typing import Optional
+# avoid importing the whole shell_command_logger package
+# Use the correct type hints depending on the python version
+PYTHON_VERSION = (sys.version_info.major, sys.version_info.minor)
+if PYTHON_VERSION >= (3, 9):
+    # Use the modern versions
+    Tuple = tuple
+    List = list
+else:
+    # Use the deprecated versions, since using the modern versions would cause "TypeError: 'type' object is not subscriptable"
+    from typing import Tuple, List
+
 
 
 # Since this scriptwill be called using something like `script [...] -c "./pretty_exec ARGUMENTS"` escaping arguments safely and correctly may be hard
 # and mistakes could result is subtle bugs. So instead the arguments will be passed in a shell-safe format.
 # My idea is to JSON encode the argv array and then base64 encode the resulting string
 # @LINK: Opposite of simple_recorder.py:encode_command()
-def decode_command(encoded_command_array: str) -> list[str]:
+def decode_command(encoded_command_array: str) -> List[str]:
     command_json_bytes = base64.b64decode(encoded_command_array)
     command_json = command_json_bytes.decode("utf-8")
     command_list = json.loads(command_json)
@@ -45,7 +56,7 @@ def current_timestamp() -> str:
     # Can be parsed with datetime.fromisoformat
 
 
-def execute_command(command: list[str]) -> tuple[int, Optional[str]]:
+def execute_command(command: List[str]) -> Tuple[int, Optional[str]]:
     try:
         status_code = subprocess.call(command)
         # Process war executed normally: return the status code without an error message
@@ -70,7 +81,7 @@ def execute_command(command: list[str]) -> tuple[int, Optional[str]]:
     return (-1, error_message)
 
 
-def main(command: list[str], metadata_file: str) -> int:
+def main(command: List[str], metadata_file: str) -> int:
     data: dict = {
         "command": command,
         "user": getpass.getuser(),

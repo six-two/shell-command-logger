@@ -7,6 +7,7 @@ from shell_command_logger.search import get_all_searchable_commands, SearchableC
 from shell_command_logger.config import load_config, sanitize_config
 from shell_command_logger.backports import parse_datetime_string
 from shell_command_logger.replay import remove_extension, format_command_builder, select_formatted, replay_command
+from ..backports import List, Tuple
 
 SUBCOMMAND_NAMES = ["s", "search"]
 ARG_PARSER_OPTIONS = {
@@ -89,7 +90,7 @@ def subcommand_main(args) -> int:
     search_results = filter_by_metadata(search_results, args.hosts, args.exclude_hosts, is_match_host)
 
     # Filter by error message
-    def is_match_error(metadata: Metadata, value_list: list[str]) -> bool:
+    def is_match_error(metadata: Metadata, value_list: List[str]) -> bool:
         if metadata.error_message:
             if value_list == []:
                 # No values -> matches any error
@@ -108,13 +109,13 @@ def subcommand_main(args) -> int:
     search_results = filter_by_metadata(search_results, args.errors, args.exclude_errors, is_match_error)
 
     # Filter by program
-    def is_match_program(metadata: Metadata, value_list: list[str]) -> bool:
+    def is_match_program(metadata: Metadata, value_list: List[str]) -> bool:
         program_name = os.path.basename(metadata.command[0])
         return program_name in value_list
     search_results = filter_by_metadata(search_results, args.program, args.exclude_program, is_match_program)
 
     # Filter by command arguments
-    def is_match_command(metadata: Metadata, value_list: list[str]) -> bool:
+    def is_match_command(metadata: Metadata, value_list: List[str]) -> bool:
         for value in value_list:
             for arg in metadata.command[1:]:
                 # Test if ant value is a substring of any argument
@@ -148,7 +149,7 @@ def subcommand_main(args) -> int:
     return 0
 
 
-def filter_by_grep(entries: list[SearchableCommand], arguments_and_pattern: str) -> list[SearchableCommand]:
+def filter_by_grep(entries: List[SearchableCommand], arguments_and_pattern: str) -> List[SearchableCommand]:
     grep_command = f"grep {arguments_and_pattern}"
     matches = []
     for entry in entries:
@@ -165,8 +166,8 @@ def filter_by_grep(entries: list[SearchableCommand], arguments_and_pattern: str)
 
 
 class DateChecker:
-    def __init__(self, date_list: list[str]) -> None:
-        self.boundaries: list[tuple[datetime, datetime]] = []
+    def __init__(self, date_list: List[str]) -> None:
+        self.boundaries: List[Tuple[datetime, datetime]] = []
         for date_string in date_list:
             parsed = parse_datetime_string(date_string)
 
@@ -183,7 +184,7 @@ class DateChecker:
                 return True
         return False
 
-def filter_by_metadata(entries: list[SearchableCommand], value: Any, exclude_value: Any, is_match: Callable[[Metadata, Any], bool]) -> list[SearchableCommand]:
+def filter_by_metadata(entries: List[SearchableCommand], value: Any, exclude_value: Any, is_match: Callable[[Metadata, Any], bool]) -> List[SearchableCommand]:
     if value != None:
         if exclude_value != None:
             raise Exception("Both value and exclude_value have been supplied")

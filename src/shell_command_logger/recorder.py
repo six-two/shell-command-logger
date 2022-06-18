@@ -7,20 +7,22 @@ import time
 import secrets
 # local
 from .config import SclConfig
+from shell_command_logger.backports import List
+
 
 # This also works when the file is a symlink (gets the original dir)
 REAL_SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 # @LINK: Opposite of pretty_exec.py:decode_command()
-def encode_command(command_and_arguments: list[str]) -> str:
+def encode_command(command_and_arguments: List[str]) -> str:
     command_json = json.dumps(command_and_arguments)
     command_json_bytes = command_json.encode("utf-8")
     encoded_command = base64.b64encode(command_json_bytes)
     return encoded_command.decode("utf-8")
 
 
-def record_command(scl_config: SclConfig, command_and_arguments: list[str], output_file: str) -> int:
+def record_command(scl_config: SclConfig, command_and_arguments: List[str], output_file: str) -> int:
     pretty_exec = os.path.join(REAL_SCRIPT_DIR, "pretty_exec.py")
     encoded_command = encode_command(command_and_arguments)
     inner_command = ["python3", pretty_exec, encoded_command, f"{output_file}.json"]
