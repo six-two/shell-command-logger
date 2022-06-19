@@ -1,4 +1,3 @@
-from asyncio import subprocess
 import logging
 import subprocess
 # local files
@@ -47,7 +46,7 @@ class LoggerBackend:
         raise Exception("Needs to be overwritten by subclass")
 
 
-    def replay_command(self, base_file_name: str, options: ReplayOptions) -> None:
+    def replay_command(self, base_file_name: str, options: ReplayOptions) -> int:
         """
         Replay the command stored with the given base_file_name.
         Returns the exit code of the recorded command or 0 if the status code was not logged.

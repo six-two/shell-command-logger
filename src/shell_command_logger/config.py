@@ -2,8 +2,11 @@ from configparser import ConfigParser
 import io
 import os
 from typing import NamedTuple
+
+from shell_command_logger.logger import get_best_backend_name, get_logger_backend
 # local
 from . import get_name_and_version, print_error, DoNotPrintMeException, print_color
+from .logger.base_class import LoggerBackend
 
 class InvalidConfigException(Exception):
     pass
@@ -22,10 +25,15 @@ class SclConfig(NamedTuple):
     fzf_executable: str
     # The folder where the symlinks should be stored. Should be part of PATH (first/high priority entry) to function
     symlink_dir: str
+    # The backend to use
+    backend_name: str
+    # This is an instantiated backend, derived from backend_name
+    backend: LoggerBackend
 
 
 CONFIG_FILE = os.path.expanduser("~/.config/shell-command-logger/config")
 SYSTEM_CONFIG_FILE = os.path.expanduser("/etc/shell-command-logger/config")
+NO_BACKEND_INITIALIZED = LoggerBackend()
 
 _KEY_SECTION = "config"
 _KEY_DATA_DIRECTORY = "data-directory"
@@ -36,6 +44,7 @@ _KEY_OUTPUT_LIMIT = "script-output-limit"
 _KEY_FILE_NAME_RANDOM_BYTES = "file-name-random-bytes"
 _KEY_FZF_EXECUTABLE = "fzf-command"
 _KEY_SYMLINK_DIR = "symlink-directory"
+_KEY_BACKEND = "backend"
 
 
 DEFAULT_CONFIG = SclConfig(
@@ -46,7 +55,9 @@ DEFAULT_CONFIG = SclConfig(
     script_output_limit="1g",
     file_name_random_bytes=2,
     fzf_executable="fzf",
-    symlink_dir="~/.local/share/shell-command-logger/bin"
+    symlink_dir="~/.local/share/shell-command-logger/bin",
+    backend_name=get_best_backend_name(),
+    backend=NO_BACKEND_INITIALIZED,
 )
 
 
@@ -69,7 +80,13 @@ def sanitize_config(config: SclConfig) -> SclConfig:
     if config.file_name_random_bytes < 1 or config.file_name_random_bytes > 100:
         raise InvalidConfigException(f"Config setting '{_KEY_FILE_NAME_RANDOM_BYTES}' needs to be between 1 and 100")
 
-    return config._replace(output_dir=output_dir, symlink_dir=symlink_dir)
+    # Try loading the correct backend module
+    try:
+        backend = get_logger_backend(config.backend_name)
+    except Exception as ex:
+        raise InvalidConfigException(f"Failed to load backend '{config.backend_name}': {ex}")
+
+    return config._replace(output_dir=output_dir, symlink_dir=symlink_dir, backend=backend)
 
 
 def ensure_directory_exists(path: str) -> None:
@@ -145,6 +162,7 @@ def parse_config_file(path: str) -> SclConfig:
     file_name_random_bytes = section_config.getint(_KEY_FILE_NAME_RANDOM_BYTES, DEFAULT_CONFIG.file_name_random_bytes)
     fzf_executable = section_config.get(_KEY_FZF_EXECUTABLE, DEFAULT_CONFIG.fzf_executable)
     symlink_dir = section_config.get(_KEY_SYMLINK_DIR, DEFAULT_CONFIG.symlink_dir)
+    backend_name = section_config.get(_KEY_BACKEND, DEFAULT_CONFIG.backend_name)
 
     return SclConfig(
         output_dir=output_dir,
@@ -155,6 +173,8 @@ def parse_config_file(path: str) -> SclConfig:
         file_name_random_bytes=file_name_random_bytes,
         fzf_executable=fzf_executable,
         symlink_dir=symlink_dir,
+        backend_name=backend_name,
+        backend=NO_BACKEND_INITIALIZED,
     )
 
 
@@ -168,6 +188,7 @@ def config_to_parser(scl_config: SclConfig) -> ConfigParser:
         _KEY_FILE_NAME_RANDOM_BYTES: scl_config.file_name_random_bytes,
         _KEY_FZF_EXECUTABLE: scl_config.fzf_executable,
         _KEY_SYMLINK_DIR: scl_config.symlink_dir,
+        _KEY_BACKEND: scl_config.backend_name,
     }
 
     parser = ConfigParser()

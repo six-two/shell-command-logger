@@ -1,10 +1,10 @@
 import base64
 import json
 import os
-import subprocess
-import shlex
 import time
 import secrets
+
+from shell_command_logger.logger.base_class import RecordingOptions
 # local
 from .config import SclConfig
 from shell_command_logger.backports import List
@@ -22,25 +22,24 @@ def encode_command(command_and_arguments: List[str]) -> str:
     return encoded_command.decode("utf-8")
 
 
-def record_command(scl_config: SclConfig, command_and_arguments: List[str], output_file: str) -> int:
+def record_command(scl_config: SclConfig, command_and_arguments: List[str], output_file: str, options: RecordingOptions = RecordingOptions()) -> int:
     pretty_exec = os.path.join(REAL_SCRIPT_DIR, "pretty_exec.py")
     encoded_command = encode_command(command_and_arguments)
     inner_command = ["python3", pretty_exec, encoded_command, f"{output_file}.json"]
 
-    script_command = [
-        "script",
-        "--log-out", f"{output_file}.log", # stores the output
-        "--log-timing", f"{output_file}.time", # also stores the timing, so that the output can be played back to watch when what happened
-        "--command", shlex.join(inner_command), # runs our command, which displays the command, timestamp, exit code, etc
-        "--return", # return exit code of the child process
-        "--output-limit", scl_config.script_output_limit, # If the output is larger than this, something probably went wrong.
-        # This prevents your harddrive from overflowing.
-        "--quiet", # Hide the "Script started/stopped" messages
-    ]
+    # script_command = [
+    #     "script",
+    #     "--log-out", f"{output_file}.log", # stores the output
+    #     "--log-timing", f"{output_file}.time", # also stores the timing, so that the output can be played back to watch when what happened
+    #     "--command", shlex.join(inner_command), # runs our command, which displays the command, timestamp, exit code, etc
+    #     "--return", # return exit code of the child process
+    #     "--output-limit", scl_config.script_output_limit, # If the output is larger than this, something probably went wrong.
+    #     # This prevents your harddrive from overflowing.
+    #     "--quiet", # Hide the "Script started/stopped" messages
+    # ]
 
     try:
-        exit_code = subprocess.call(script_command)
-        return exit_code
+        return scl_config.backend.log_command(inner_command, output_file, options)
     except KeyboardInterrupt:
         return 2
 

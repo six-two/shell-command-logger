@@ -1,11 +1,11 @@
 import traceback
 from typing import Optional, Callable
 # pip dependency
-_colored: Optional[Callable] = None
 try:
     from termcolor import colored as _colored
 except ImportError:
-    pass
+    _colored: Optional[Callable] = None
+
 
 def print_color(message: str, font_color: str, bold: bool = False, **kwargs) -> None:
     print(color(message, font_color, bold), **kwargs)
