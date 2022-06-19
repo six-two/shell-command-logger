@@ -27,20 +27,6 @@ def replay_command(output_file: str, scl_config: SclConfig, only_show_original_o
         print_header(metadata)
 
     try:
-        # # Turns out that the .log file has a header (and a footer) and may have a complicated format (see flag "--logging-format" at https://man7.org/linux/man-pages/man1/script.1.html)
-        # # So instead of reading the file, we use scriptrelay and give it a really big speed up factor.
-        # speed = "1000000" if skip_replay else str(scl_config.replay_speed)
-
-        # # Build the replay command
-        # script_command = [
-        #     "scriptreplay",
-        #     "--log-out", f"{output_file}.log", # read the output file
-        #     "--log-timing", f"{output_file}.time", # also read the timing file
-        #     "--divisor", speed,
-        # ]
-
-        # # Execute scriptreplay
-        # exit_code = subprocess.call(script_command)
         options = ReplayOptions(replay_speed=scl_config.replay_speed, instant_replay=skip_replay)
         exit_code = scl_config.backend.replay_command(output_file, options)
 

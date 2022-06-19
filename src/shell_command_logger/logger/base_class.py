@@ -3,6 +3,8 @@ import subprocess
 # local files
 from ..backports import List
 
+_ONE_GIGABYTE = 1024 * 1024 * 1024
+
 class LoggerException(Exception):
     """
     Any LoggerExceptions should be caught by callers and the results should be shown to the user
@@ -12,8 +14,9 @@ class RecordingOptions:
     """
     The options to pass to logger backend calls. This uses an object, so that the method signature (of all subclasses) does not need to be updated when new options are added.
     """
-    def __init__(self, allow_recording_of_stdin: bool = True) -> None:
+    def __init__(self, allow_recording_of_stdin: bool = True, output_limit: int = _ONE_GIGABYTE) -> None:
         self.allow_recording_of_stdin = allow_recording_of_stdin
+        self.output_limit = output_limit
 
 class ReplayOptions:
     """

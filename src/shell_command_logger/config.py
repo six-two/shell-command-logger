@@ -16,7 +16,7 @@ class SclConfig(NamedTuple):
     # output settings
     output_dir: str
     add_readme: bool
-    script_output_limit: str
+    script_output_limit: int
     file_name_random_bytes: int
     # replay settings
     command_format: str
@@ -52,7 +52,7 @@ DEFAULT_CONFIG = SclConfig(
     add_readme=True,
     command_format="[ {start_time} | {success} ] {command}",
     replay_speed=1.0,
-    script_output_limit="1g",
+    script_output_limit=1024*1024*1024, # One gigabyte
     file_name_random_bytes=2,
     fzf_executable="fzf",
     symlink_dir="~/.local/share/shell-command-logger/bin",
