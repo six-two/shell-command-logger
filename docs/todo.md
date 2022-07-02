@@ -10,6 +10,7 @@ There are still some features missing:
 - Add option to skip ignore `output-limit` for `scl log`
 - Add more scriptreplay flags (like --divisor, --maxdelay) to `scl replay`
 - Add import / export functionality (zip archive, with gpg signed sha512sum file)
+- Add more metadata: OS, terminal size
 
 ## Known issues
 

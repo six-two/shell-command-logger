@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+import argparse
+import sys
+# local files
+from shell_command_logger.cli.log import _record_command
+from shell_command_logger.main_file import set_python_main_file
+
+
+def main() -> int:
+    # Parse arguments
+    ap = argparse.ArgumentParser(description="This script can be used to log the output of a shell script by inserting '#!/usr/bin/env scl-record-script' at the beginning of the file")
+    ap.add_argument("script_file", help="the file to execute")
+    args = ap.parse_args()
+
+    script_file = args.script_file
+
+    # Set this als the main python file (used for recursion prevention)
+    set_python_main_file(__file__)
+
+    # Run and record the given script
+    interpreter = read_second_shebang(script_file)
+    _record_command([*interpreter, script_file])
+
+    
+def read_second_shebang(path: str) -> list[str]:
+    """
+    Read the second line form the given file and parse it as a shebang
+    """
+    with open(path, "r") as f:
+        # This line will be ignored, because it likely contains the shebang to call this command
+        f.readline()
+        # The second line will may contain a shebang, that specifies how to execute the script file
+        shebang = f.readline()
+
+    return parse_shebang(shebang)
+
+
+def parse_shebang(line: str) -> list[str]:
+    """
+    This emulates the behavior of a real shebang, as described in https://en.wikipedia.org/wiki/Shebang_(Unix) for Linux systems
+    """
+    if line.startswith("#!"):
+        # let's try to parse the shebang
+        # Remove the leading #! and then remove any whitespace follwoing it and also remove trailing whitespace
+        shebang = line[2:].strip()
+        # Only split at the first whitespace
+        parts = shebang.split(maxsplit=1)
+        # REmove possible leading whitespace of the second argument
+        parts[-1] = parts[-1].lstrip()
+        return parts
+    else:
+        # no shebang found -> use /bin/sh
+        return ["/bin/sh"]
+
+
+if __name__ == "__main__":
+    exit_code = main()
+    sys.exit(exit_code)
+

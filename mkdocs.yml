@@ -28,8 +28,11 @@ nav:
 - installation.md
 - configuration.md
 - output-files.md
-- aliases.md
-- symlinks.md
+- "Logging commands":
+  - log/manual.md
+  - log/aliases.md
+  - log/symlinks.md
+  - log/shebang.md
 - todo.md
 - "Web site credits": created-with.md
 
