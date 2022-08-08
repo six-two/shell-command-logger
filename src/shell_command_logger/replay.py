@@ -40,8 +40,9 @@ def replay_command(output_file: str, scl_config: SclConfig, only_show_original_o
 def print_header(metadata: Metadata) -> None:
     command = shlex.join(metadata.command)
     start_time = metadata.start_time_utc.strftime(PRETT_TIME_FORMAT)
+    working_dir = f" in folder {metadata.working_dir}" if metadata.working_dir else ""
 
-    print_color(f"[scl] Command executed by {metadata.user}@{metadata.hostname} at {start_time}", "blue", bold=True)
+    print_color(f"[scl] Command executed by {metadata.user}@{metadata.hostname} at {start_time}{working_dir}", "blue", bold=True)
     print_color(f"[scl] Command: {command}", "blue", bold=True)
 
 

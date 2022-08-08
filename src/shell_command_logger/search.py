@@ -18,6 +18,7 @@ class Metadata(NamedTuple):
     end_time_utc: datetime
     error_message: Optional[str]
     status_code: int
+    working_dir: Optional[str]
 
 
 # TODO: Move to a new metadata module
@@ -48,6 +49,8 @@ def parse_metadata(file_path: str) -> Metadata:
         if type(status_code) != int:
             raise Exception(f"Field 'status_code' should be an integer, but is '{type(status_code)}'")
 
+        working_dir = data.get("working_dir") # introduced later, so it may not be in all recordings
+
         return Metadata(
             command=command,
             user=_get_string_field(data, "user"),
@@ -56,6 +59,7 @@ def parse_metadata(file_path: str) -> Metadata:
             end_time_utc=end_time_utc,
             error_message=error_message,
             status_code=status_code,
+            working_dir=working_dir,
         )
     except FileNotFoundError:
         raise Exception(f"Metadata file does not exist: '{file_path}'")

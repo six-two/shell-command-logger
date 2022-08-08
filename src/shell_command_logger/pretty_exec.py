@@ -4,6 +4,7 @@ import base64
 from datetime import datetime, timezone
 import getpass
 import json
+import os
 import platform
 import subprocess
 import sys
@@ -86,7 +87,8 @@ def main(command: List[str], metadata_file: str) -> int:
         "command": command,
         "user": getpass.getuser(),
         "hostname": platform.node(),
-        "start_time": current_timestamp() 
+        "start_time": current_timestamp(),
+        "working_dir": os.getcwd(),
     }
 
     status_code, error_message = execute_command(command)
