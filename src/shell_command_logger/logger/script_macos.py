@@ -11,7 +11,7 @@ class LoggerScriptMacOs(LoggerBackend):
     name = "script_macos"
 
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(filter_trailing_carriage_returns=True)
         # This tool is only available on macOS, but a tool with the same name exists on linux. To prevent confusion, we check it 
         if sys.platform != "darwin":
             raise LoggerException(f"This tool is only available on macOS. Found different operating system: {sys.platform}")

@@ -12,7 +12,7 @@ class LoggerScriptLinux(LoggerBackend):
     name = "script_linux"
 
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(filter_trailing_carriage_returns=True)
         if sys.platform.startswith("darwin"):
             raise LoggerException(f"This module does not work on macOS, since the script binary has different options")
 
