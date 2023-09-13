@@ -51,7 +51,7 @@ For more information see the [documentation](https://shell-command-logger.six-tw
 
 ## Notable changes
 
-### Head (future version 0.4.1)
+### Version 0.4.1
 
 - By default do not attempt to deal with "unnecessary" `\r` added by script ay more. It caused too many troubles. If you want/need the old behavior, set the environment variable `SCL_STRIP_CR` to the value `1`.
 - Pass `SIGINT` signals (usually triggered by `Ctrl-C`) to the process being logged instead of being interrupted -> logging things like shells should work (better)

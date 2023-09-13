@@ -19,7 +19,7 @@ def color(message: str, font_color: str, bold: bool = False) -> str:
         return message
 
 # @SYNC: /setup.cfg -> [metadata] -> version
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 
 class DoNotPrintMeException(Exception):
