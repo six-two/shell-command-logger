@@ -158,7 +158,10 @@ def parse_config_file(path: str) -> SclConfig:
     add_readme = section_config.getboolean(_KEY_ADD_README_FILE, DEFAULT_CONFIG.add_readme)
     command_format = section_config.get(_KEY_COMMAND_FORMAT, DEFAULT_CONFIG.command_format)
     replay_speed = section_config.getfloat(_KEY_REPLAY_SPEED, DEFAULT_CONFIG.replay_speed)
-    script_output_limit = section_config.get(_KEY_OUTPUT_LIMIT, DEFAULT_CONFIG.script_output_limit)
+    try:
+        script_output_limit = int(section_config.get(_KEY_OUTPUT_LIMIT, str(DEFAULT_CONFIG.script_output_limit)))
+    except ValueError: # Handle the case where the input is not a valid number
+        script_output_limit = DEFAULT_CONFIG.script_output_limit
     file_name_random_bytes = section_config.getint(_KEY_FILE_NAME_RANDOM_BYTES, DEFAULT_CONFIG.file_name_random_bytes)
     fzf_executable = section_config.get(_KEY_FZF_EXECUTABLE, DEFAULT_CONFIG.fzf_executable)
     symlink_dir = section_config.get(_KEY_SYMLINK_DIR, DEFAULT_CONFIG.symlink_dir)

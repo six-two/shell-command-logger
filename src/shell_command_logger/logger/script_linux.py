@@ -15,7 +15,7 @@ class LoggerScriptLinux(LoggerBackend):
     def __init__(self) -> None:
         super().__init__(filter_trailing_carriage_returns=temp_workaround_get_default_trailing_filter_trailing_carriage_returns())
         if sys.platform.startswith("darwin"):
-            raise LoggerException(f"This module does not work on macOS, since the script binary has different options")
+            raise LoggerException("This module does not work on macOS, since the script binary has different options")
 
     
     def _build_log_command(self, command: List[str], base_file_name: str, options: RecordingOptions) -> List[str]:

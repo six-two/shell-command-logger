@@ -23,8 +23,7 @@ class LoggerBasicPython(LoggerBackend):
 
     def __init__(self) -> None:
         super().__init__()
-        if sys.platform.startswith("darwin"):
-            raise LoggerException(f"This module does not work on macOS, since the script binary has different options")
+        raise LoggerException("Not implemented yet")
 
     
     def _build_log_command(self, command: List[str], base_file_name: str, options: RecordingOptions) -> List[str]:
@@ -33,7 +32,9 @@ class LoggerBasicPython(LoggerBackend):
                 with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as process:
                     # Pseudocode, untested
                     start_time = _time()
-                    while True:
+                    if not process.stdout:
+                        raise Exception("The process to log has no stdout attribute -> how should I log the output?")
+                    while True: # equivalent to while true
                         data = process.stdout.read() # is this waiting, or returning immediately
                         time = _time() - start_time
                         log_file.write(data)
@@ -41,8 +42,10 @@ class LoggerBasicPython(LoggerBackend):
                         time_data = f"{len(data)} {time}\n"
                         time_file.write(time_data.encode())
 
+                        # @TODO: exit if process finished and no more data to read
 
-        return script_command
+        # @TODO: What ws my plan whn I wrote this? Why is it running the command instead of just creating a parametrized call?
+        raise Exception("Not implemented yet")
 
 
     def _build_replay_command(self, base_file_name: str, options: ReplayOptions) -> List[str]:

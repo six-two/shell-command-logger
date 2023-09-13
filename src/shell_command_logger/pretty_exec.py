@@ -68,7 +68,7 @@ def execute_command(command: List[str]) -> Tuple[int, Optional[str]]:
             try:
                 process.wait()
             except KeyboardInterrupt:
-                print(f"\n[shell-command-logger] Passing Ctrl-C (SIGINT) to subprocess")
+                # print("\n[shell-command-logger] Passing Ctrl-C (SIGINT) to subprocess")
                 # Based on https://stackoverflow.com/questions/75474344/how-do-i-pass-ctrl-c-into-subprocess-popen-using-the-stdin-argument
                 process.send_signal(signal.SIGINT)
 

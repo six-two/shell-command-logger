@@ -42,6 +42,10 @@ class LoggerBackend:
     """
     An "abstract" class, that defines the methods, that a logging program should support
     """
+
+    name = "abstract_logger_backend_overwrite_this_field"
+
+
     def __init__(self, filter_trailing_carriage_returns: bool = False) -> None:
         # The script command on mac and linux seems to add a \r character to the ond of each line.
         # This may break other scripts parsing the output (for example with cut).

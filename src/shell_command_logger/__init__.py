@@ -11,7 +11,7 @@ def print_color(message: str, font_color: str, bold: bool = False, **kwargs) -> 
     print(color(message, font_color, bold), **kwargs)
 
 def color(message: str, font_color: str, bold: bool = False) -> str:
-    if _colored:
+    if _colored is not None:
         attrs = ["bold"] if bold else None
         return _colored(message, font_color, attrs=attrs)
     else:
