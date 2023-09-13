@@ -6,6 +6,7 @@ import getpass
 import json
 import os
 import platform
+import signal
 import subprocess
 import sys
 import traceback
@@ -59,9 +60,20 @@ def current_timestamp() -> str:
 
 def execute_command(command: List[str]) -> Tuple[int, Optional[str]]:
     try:
-        status_code = subprocess.call(command)
+        # Instead of a simple subprocess.call, we manually handle it so that we can properly handle SIGINT events and pass them through to the inner process
+        # @TODO: would it also make sense to handle other events (SIGTERM, etc)
+        # Seems to work, at least with a quick "scl log bash" and repeatedly pressing Ctrl-C. However the display in the shell (bash/fish) is severely broken
+        process = subprocess.Popen(command)
+        while process.poll() == None:
+            try:
+                process.wait()
+            except KeyboardInterrupt:
+                print(f"\n[shell-command-logger] Passing Ctrl-C (SIGINT) to subprocess")
+                # Based on https://stackoverflow.com/questions/75474344/how-do-i-pass-ctrl-c-into-subprocess-popen-using-the-stdin-argument
+                process.send_signal(signal.SIGINT)
+
         # Process war executed normally: return the status code without an error message
-        return (status_code, None)
+        return (process.returncode, None)
     except FileNotFoundError:
         error_message = f"Program '{command[0]}' not found"
         print(f"[shell-command-logger] {error_message}")
