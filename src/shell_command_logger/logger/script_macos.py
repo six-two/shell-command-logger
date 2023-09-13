@@ -1,8 +1,13 @@
 import sys
+import os
 # Tested on macOS Monterey (Version 12.4), may not work on older versions
 from .. import print_color
 from ..backports import List
 from .base_class import LoggerBackend, LoggerException, ReplayOptions, RecordingOptions
+
+def temp_workaround_get_default_trailing_filter_trailing_carriage_returns():
+    # Set SCL_STRIP_CR=1 to strip, otherwise it will be disabled
+    return os.getenv("SCL_STRIP_CR", "0").strip() == "1"
 
 class LoggerScriptMacOs(LoggerBackend):
     """
@@ -11,7 +16,7 @@ class LoggerScriptMacOs(LoggerBackend):
     name = "script_macos"
 
     def __init__(self) -> None:
-        super().__init__(filter_trailing_carriage_returns=True)
+        super().__init__(filter_trailing_carriage_returns=temp_workaround_get_default_trailing_filter_trailing_carriage_returns())
         # This tool is only available on macOS, but a tool with the same name exists on linux. To prevent confusion, we check it 
         if sys.platform != "darwin":
             raise LoggerException(f"This tool is only available on macOS. Found different operating system: {sys.platform}")

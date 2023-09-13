@@ -1,0 +1,1 @@
+- add a flag to specify whether to replace trailing \r when logging a command (replace SCL_STRIP_CR)

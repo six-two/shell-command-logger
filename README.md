@@ -47,3 +47,12 @@ For more information see the [documentation](https://shell-command-logger.six-tw
 - `script` does strange things to input (I think to `\r`), so you should not wrap any netcat variants (`nc`, `ncat`, `netcat`).
 - `Ctrl+C` kills `scl`, even if the program you call would handle the key combination.
     This is especially annoying with tools like `msfconsole`.
+
+
+## Notable changes
+
+### Head (future version 0.4.1)
+
+- By default do not attempt to deal with "unnecessary" `\r` added by script ay more. It caused too many troubles. If you want/need the old behavior, set the environment variable `SCL_STRIP_CR` to the value `1`.
+- Pass `SIGINT` signals (usually triggered by `Ctrl-C`) to the process being logged instead of being interrupted -> logging things like shells should work (better)
+- Removed aliases for problematic tools (msfconsole, nc, ncat, netcat)

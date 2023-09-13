@@ -4,6 +4,7 @@ import sys
 from ..backports import List
 # from ..config import SclConfig
 from .base_class import LoggerBackend, LoggerException, ReplayOptions, RecordingOptions
+from .script_macos import temp_workaround_get_default_trailing_filter_trailing_carriage_returns
 
 class LoggerScriptLinux(LoggerBackend):
     """
@@ -12,7 +13,7 @@ class LoggerScriptLinux(LoggerBackend):
     name = "script_linux"
 
     def __init__(self) -> None:
-        super().__init__(filter_trailing_carriage_returns=True)
+        super().__init__(filter_trailing_carriage_returns=temp_workaround_get_default_trailing_filter_trailing_carriage_returns())
         if sys.platform.startswith("darwin"):
             raise LoggerException(f"This module does not work on macOS, since the script binary has different options")
 
