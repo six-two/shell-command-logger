@@ -41,3 +41,9 @@ You can use `scl replay` to interactively choose and replay a file.
 With `scl search` you can search logged commands.
 For more information see the [documentation](https://shell-command-logger.six-two.dev/) or run `scl --help`.
 
+
+## Known issues
+
+- `script` does strange things to input (I think to `\r`), so you should not wrap any netcat variants (`nc`, `ncat`, `netcat`).
+- `Ctrl+C` kills `scl`, even if the program you call would handle the key combination.
+    This is especially annoying with tools like `msfconsole`.

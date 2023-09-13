@@ -5,13 +5,9 @@ enum4linux
 ffuf
 host
 gobuster
-nc
-ncat
-netcat
 nmap
 nslookup
 masscan
-msfconsole
 smbclient
 sqlmap
 ssh-audit
